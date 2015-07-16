@@ -1,5 +1,17 @@
 set(NAME glm_dummy)
 
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+	#add_definitions(-S)
+	#add_definitions(-s)
+	add_definitions(-m64)
+	add_definitions(-O2)
+
+	#add_definitions(-fprofile-arcs -ftest-coverage) gcov
+	#ctest_enable_coverage()
+endif()
+
 file(GLOB ROOT_SOURCE *.cpp)
 file(GLOB ROOT_INLINE *.inl)
 file(GLOB ROOT_HEADER *.hpp)
@@ -30,14 +42,6 @@ source_group("GTX Files" FILES ${GTX_INLINE})
 source_group("GTX Files" FILES ${GTX_HEADER})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
-
-if(GLM_TEST_ENABLE)
-	add_executable(${NAME} ${ROOT_TEXT} ${ROOT_NAT}
-		${ROOT_SOURCE}    ${ROOT_INLINE}    ${ROOT_HEADER}
-		${CORE_SOURCE}    ${CORE_INLINE}    ${CORE_HEADER}
-		${GTC_SOURCE}     ${GTC_INLINE}     ${GTC_HEADER}
-		${GTX_SOURCE}     ${GTX_INLINE}     ${GTX_HEADER})
-endif(GLM_TEST_ENABLE)
 
 add_library(glm STATIC ${ROOT_TEXT} ${ROOT_NAT}
                                		${ROOT_SOURCE}    ${ROOT_INLINE}    ${ROOT_HEADER}

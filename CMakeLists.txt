@@ -13,8 +13,10 @@ link_directories(Libs/MinGW/dlls)
 file(COPY data/ DESTINATION .)
 
 add_subdirectory(glm)
+add_subdirectory(glew)
+add_subdirectory(glfw)
 add_subdirectory(lodepng)
 
 set(SOURCE_FILES main.cpp)
 add_executable(AlphaToMesh ${SOURCE_FILES})
-target_link_libraries(AlphaToMesh glm lodepng)
+target_link_libraries(AlphaToMesh glm glfw GLEW_static opengl32 lodepng)
