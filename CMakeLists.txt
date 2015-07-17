@@ -17,6 +17,9 @@ add_subdirectory(glew)
 add_subdirectory(glfw)
 add_subdirectory(lodepng)
 
-set(SOURCE_FILES main.cpp)
+SET(GCC_COVERAGE_LINK_FLAGS    "-static-libgcc -static-libstdc++")
+SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
+
+set(SOURCE_FILES main.cpp stacktrace.hpp stacktrace.cpp)
 add_executable(AlphaToMesh ${SOURCE_FILES})
-target_link_libraries(AlphaToMesh glm glfw GLEW_static opengl32 lodepng)
+target_link_libraries(AlphaToMesh imagehlp glm glfw GLEW_static opengl32 lodepng)
