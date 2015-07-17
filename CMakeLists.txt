@@ -5,6 +5,7 @@ project(AlphaToMesh)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+add_definitions("-DSTACKTRACE" "-DGLEW_STATIC")
 #include_directories(Libs/MinGW/libpng/header)
 link_directories(Libs/MinGW/dlls)
 
@@ -20,6 +21,6 @@ add_subdirectory(lodepng)
 SET(GCC_COVERAGE_LINK_FLAGS    "-static-libgcc -static-libstdc++")
 SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
 
-set(SOURCE_FILES main.cpp stacktrace.hpp stacktrace.cpp)
-add_executable(AlphaToMesh ${SOURCE_FILES})
+set(SOURCE_FILES main.cpp util/stacktrace.hpp util/stacktrace.cpp)
+add_executable(AlphaToMesh ${SOURCE_FILES} src/imageStruct.hpp src/renderImage.cpp src/renderImage.h)
 target_link_libraries(AlphaToMesh imagehlp glm glfw GLEW_static opengl32 lodepng)

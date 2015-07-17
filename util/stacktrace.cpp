@@ -4,8 +4,6 @@
 
 #include "stacktrace.hpp"
 
-#define STACKTRACE
-
 #ifdef STACKTRACE
 
 #include <iostream>
