@@ -1,3 +1,4 @@
+#define GLM_FORCE_RADIANS
 #include <iostream>
 #include <fstream>      // std::filebuf
 #include <vector>
@@ -8,8 +9,8 @@
 //#define PNG_DEBUG 3
 //#include <lodepng/lodepng.h>
 #include "glm/glm.hpp"
-#include "glm/gtx/perpendicular.hpp"
-#include "lodepng/lodepng.h"
+#include "glm/gtx/vector_angle.hpp"
+//#include "lodepng/lodepng.h"
 
 #include "glew/include/GL/glew.h"
 #include "glfw/include/GLFW/glfw3.h"
@@ -20,9 +21,16 @@
 
 #include "src/imageStruct.hpp"
 #include "src/renderImage.h"
+#include "src/renderRim.h"
 
 imageStruct* img;
 renderImage* renderImage1;
+
+vector<renderRim> rimsToRender;
+
+vector<vector<ivec2>> findRims(float alpha_limit, const imageStruct* img) ;
+vector<vector<vec2>> simplyfiyRims(vector<vector<ivec2>> rims, float errorMargin);
+
 void init(){
     img = imageStruct::load("test.png");
     renderImage1 = new renderImage(*img);
@@ -37,10 +45,32 @@ void init(){
 
     auto alpha_limit = 0.99f;
 
-    std::vector<std::vector<ivec2>> rims;
-    std::vector<ivec2> rim;
+    vector<vector<ivec2>> rims = findRims(alpha_limit,img);
 
-    std::vector<std::vector<ivec2>> directions; //todo find a method to compute this
+    for(auto& rim : rims){
+        rimsToRender.emplace_back(rim,long(img->width),long(img->height));
+    }
+
+    vector<vector<vec2>> simpleRims = simplyfiyRims(rims,1.f);
+    for(auto& rim: simpleRims){
+        cout << endl << "simple rim" << endl;
+        for(auto& v : rim){
+            cout<< "("<< v.x << "/"<< v.y << ")->";
+        }
+        rimsToRender.emplace_back(rim,long(img->width),long(img->height));
+    }
+
+    //glEnable(GL_ALPHA_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+}
+
+vector<vector<ivec2>> findRims(float alpha_limit, const imageStruct* img) {
+    vector<vector<ivec2>> rims;
+    vector<ivec2> rim;
+
+    vector<vector<ivec2>> directions; //todo find a method to compute this
     directions.resize(8);
 
     directions.at(0).push_back(ivec2(1,0)); //walking directionm
@@ -67,35 +97,51 @@ void init(){
     directions.at(7).push_back(ivec2(1,-1));
     directions.at(7).push_back(ivec2(-1,0));
 
-    for (unsigned y = 0; y < img->height; ++y) {
-        for (unsigned x = 0; x < img->width; ++x) {
+    //walk over the while image
+    for (long y = -1; y < long(img->height); ++y) {
+        for (long x = -1; x < long(img->width); ++x) {
             auto pixel = img->getPixel(x,y); //current position
             auto next = img->getPixel(x+1,y); //future pixel
 
             auto start = ivec2(static_cast<int>(x),static_cast<int>(y));
 
+            //find every possible alpha rim
             if(pixel.a <= alpha_limit && next.a > alpha_limit && find_if(rims.begin(),rims.end(),
                                                [&](const vector<ivec2>& v){
-                                                   return find_if(v.begin(),v.end(),[&](const ivec2& p){
-                                                       return start == p;
-                                                   }) != v.end();
+                                                   return find(v.begin(),v.end(),start) != v.end();
                                                }) == rims.end()){ // check if we are on the rim of an "object" and is part of a rim
                 unsigned long long dir = 0;
-                std::cout<< std::endl << "new Rim" << std::endl;
-                std::cout<< "("<< start.x << "/"<< start.y << ")";
+                cout<< endl << "new Rim" << endl;
+                cout<< "("<< start.x << "/"<< start.y << ")";
                 int count = 0;
-                while(img->getPixel(start+directions.at(dir).at(0)).a > alpha_limit
-                      || img->getPixel(start+directions.at(dir).at(0)+directions.at(dir).at(1)).a <= alpha_limit) {
-                    dir = (dir + 1) % directions.size();
+
+                //get a head start
+                while(img->getPixel(start+directions.at(dir).at(0)).a > alpha_limit // is where I want to walk still enough transparancy?
+                      || img->getPixel(start+directions.at(dir).at(0)+directions.at(dir).at(1)).a <= alpha_limit) { // is rigth from that pixel still an opace pixel?
+                    dir = (dir + 1) % directions.size(); // if we didn't found it look into an other direction
                     count++;
-                    assert(count < 8 && "start");
+                    assert(count < 8 && "start"); // if we looked into all directions and didn't found anything
                 }
 
-                auto current = start+directions.at(dir).at(0);
+                auto current = start+directions.at(dir).at(0); // set headstart
                 rim.push_back(start);
                 auto pixelcount = 0;
                 while(current != start){ //Run along the rim till we have a loop
+
+                    //prevent a loop that doesn't end in the start
+                    auto found = find(rim.begin(),rim.end(),current);
+                    if(found != rim.end()){
+                        vector<ivec2> buf;
+                        for(;found!=rim.end();found++){
+                            buf.push_back(*found);
+                        }
+                        rim.swap(buf);
+                        break;
+                    }
+
+
                     count = 0;
+                    //find next rim pixel
                     while(img->getPixel(current+directions.at(dir).at(0)).a > alpha_limit
                           || img->getPixel(current+directions.at(dir).at(0)+directions.at(dir).at(1)).a <= alpha_limit) {
                         dir = (dir+1)%directions.size();
@@ -103,24 +149,73 @@ void init(){
                         assert(count < 8 && "chain");
                     }
 
-                    std::cout<< "->("<< current.x << "/"<< current.y << ")";
+                    cout<< "->("<< current.x << "/"<< current.y << ")";
 
+                    //add found chainlink into rim
                     rim.push_back(current);
                     current = current+directions.at(dir).at(0);
                     pixelcount++;
-                    assert(pixelcount < img->width*img->height);
+                    assert(pixelcount < img->width*img->height); // we somehow ended in a loop that is longer than we have pixels
                 }
 
-                rims.push_back(rim);
-                rim = vector<ivec2>();
+                rims.push_back(rim); // add rim to found rims
+                rim = vector<ivec2>(); // an new rim for the next run
             }
         }
     }
+    return rims;
+}
 
-    //glEnable(GL_ALPHA_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+vector<vec2> simplyfiyRim(vector<ivec2> rim, float errorMargin){
+    vector<vec2> erg;
+    for(auto& r : rim){
+        erg.emplace_back(float(r.x), float(r.y));
+    }
 
+    auto noSimplification = false;
+    while(!noSimplification){
+        noSimplification = true;
+        vector<vec2> buf;
+        for(size_t i = 0; i < erg.size()-2;){
+            auto vec1 = erg.at(i);
+            auto vec2 = erg.at(i++);
+            auto vec3 = erg.at(i++);
+
+            auto diff1 = vec2-vec1;
+            auto diff2 = vec3-vec1;
+
+            auto diffangle = degrees(angle(diff1,diff2));
+            //cout << "angle: " << diffangle << endl;
+            while(diffangle < errorMargin){
+                vec2 = vec3;
+                i = (i+1)%erg.size();
+                vec3 = erg.at(i);
+                diff1 = vec2-vec1;
+                diff2 = vec3-vec1;
+                diffangle = degrees(angle(diff1,diff2));
+            }
+            if(find(buf.begin(),buf.end(),vec1) == buf.end()) {
+                buf.push_back(vec1);
+            }
+            if(find(buf.begin(),buf.end(),vec2) == buf.end()) {
+                buf.push_back(vec2);
+            }
+            i--;
+        }
+        erg.swap(buf);
+        buf.clear();
+    }
+    return erg;
+}
+
+vector<vector<vec2>> simplyfiyRims(vector<vector<ivec2>> rims, float errorMargin){
+    vector<vector<vec2>> erg;
+    for(auto& rim : rims){
+        if(rim.size() > 2) {
+            erg.push_back(simplyfiyRim(rim, errorMargin));
+        }
+    }
+    return erg;
 }
 
 void mainLoop(float dt){
@@ -128,6 +223,9 @@ void mainLoop(float dt){
     glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 
     renderImage1->Render();
+    for(auto& r : rimsToRender){
+        r.Render();
+    }
 
 }
 

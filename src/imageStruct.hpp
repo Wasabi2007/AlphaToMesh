@@ -8,6 +8,7 @@
 #include "../glm/glm.hpp"
 #include <vector>
 #include <iostream>
+#include "../lodepng/lodepng.h"
 
 using namespace std;
 using namespace glm;
@@ -29,7 +30,7 @@ struct imageStruct {
                 auto b = float(image.at(index + 2)) / 255.f;
                 auto a = float(image.at(index + 3)) / 255.f;
 
-                color.push_back(vec4(r, g, b, a));
+                color.emplace_back(r, g, b, a);
             }
         }
     }
@@ -68,20 +69,16 @@ struct imageStruct {
         return new imageStruct(image, width, height);
     }
 
-    vec4 getPixel(unsigned x, unsigned y) {
+    vec4 getPixel(long x, long y) const {
         if(x < 0 || y < 0 || x >= width || y >= height){
-            return vec4(0.f, 0.f, 0.f, 0.f);
+            return vec4(0.f, 0.f, 0.f, 0.f); // retun invisible if we step over bounderays
         }
         auto index = y * width + x ;
         return color.at(index);
     }
 
-    vec4 getPixel(ivec2 pos){
-        if(pos.x < 0 || pos.y < 0 || pos.x > width || pos.y > height){
-            return vec4(0.f, 0.f, 0.f, 0.f); // retun invisible if we step over bounderays
-        }
-
-        return  getPixel(unsigned(pos.x),unsigned(pos.y));
+    vec4 getPixel(ivec2 pos) const{
+        return  getPixel(pos.x,pos.y);
     }
 
 };
