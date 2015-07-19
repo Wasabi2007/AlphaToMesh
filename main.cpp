@@ -43,7 +43,7 @@ void init(){
         std::cout << std::endl;
     }*/
 
-    auto alpha_limit = 0.99f;
+    auto alpha_limit = 0.9f;
 
     vector<vector<ivec2>> rims = findRims(alpha_limit,img);
 
@@ -53,10 +53,10 @@ void init(){
 
     vector<vector<vec2>> simpleRims = simplyfiyRims(rims,1.f);
     for(auto& rim: simpleRims){
-        cout << endl << "simple rim" << endl;
+        /*cout << endl << "simple rim" << endl;
         for(auto& v : rim){
             cout<< "("<< v.x << "/"<< v.y << ")->";
-        }
+        }*/
         rimsToRender.emplace_back(rim,long(img->width),long(img->height));
     }
 
@@ -97,22 +97,26 @@ vector<vector<ivec2>> findRims(float alpha_limit, const imageStruct* img) {
     directions.at(7).push_back(ivec2(1,-1));
     directions.at(7).push_back(ivec2(-1,0));
 
+    vector<vector<bool> > partOfChain; // save witch pixels are already part of a chain. Cheaper then looking throug all existing rims.
+    partOfChain.resize(img->height+2); // +2 to compensate the grap over the imageborder
+    for (int i = 0; i < img->height+2; ++i)
+        partOfChain[i].resize(img->width+2);
+
     //walk over the while image
-    for (long y = -1; y < long(img->height); ++y) {
-        for (long x = -1; x < long(img->width); ++x) {
+    for (long y = -1; y <= long(img->height); ++y) {
+        for (long x = -1; x <= long(img->width); ++x) {
+            if(partOfChain[y+1][x+1]) continue; // skip pixel that is already in a chain
+
             auto pixel = img->getPixel(x,y); //current position
             auto next = img->getPixel(x+1,y); //future pixel
 
             auto start = ivec2(static_cast<int>(x),static_cast<int>(y));
 
             //find every possible alpha rim
-            if(pixel.a <= alpha_limit && next.a > alpha_limit && find_if(rims.begin(),rims.end(),
-                                               [&](const vector<ivec2>& v){
-                                                   return find(v.begin(),v.end(),start) != v.end();
-                                               }) == rims.end()){ // check if we are on the rim of an "object" and is part of a rim
+            if(pixel.a <= alpha_limit && next.a > alpha_limit){ // check if we are on the rim of an "object" and is part of a rim
                 unsigned long long dir = 0;
                 cout<< endl << "new Rim" << endl;
-                cout<< "("<< start.x << "/"<< start.y << ")";
+                //cout<< "("<< start.x << "/"<< start.y << ")";
                 int count = 0;
 
                 //get a head start
@@ -123,17 +127,26 @@ vector<vector<ivec2>> findRims(float alpha_limit, const imageStruct* img) {
                     assert(count < 8 && "start"); // if we looked into all directions and didn't found anything
                 }
 
-                auto current = start+directions.at(dir).at(0); // set headstart
+                auto current = start+directions.at(dir).at(0); // set headstart so that the search dont end imdiataly;
                 rim.push_back(start);
+                partOfChain[start.y+1][start.x+1] = true;
+                partOfChain[current.y+1][current.x+1] = true;
                 auto pixelcount = 0;
+                //todo maybe change to a do while
                 while(current != start){ //Run along the rim till we have a loop
 
                     //prevent a loop that doesn't end in the start
                     auto found = find(rim.begin(),rim.end(),current);
                     if(found != rim.end()){
+
+                        for(auto& p : rim){
+                            partOfChain[p.y+1][p.x+1] = false;
+                        }
+
                         vector<ivec2> buf;
                         for(;found!=rim.end();found++){
                             buf.push_back(*found);
+                            partOfChain[(*found).y+1][(*found).x+1] = true;
                         }
                         rim.swap(buf);
                         break;
@@ -142,17 +155,47 @@ vector<vector<ivec2>> findRims(float alpha_limit, const imageStruct* img) {
 
                     count = 0;
                     //find next rim pixel
-                    while(img->getPixel(current+directions.at(dir).at(0)).a > alpha_limit
-                          || img->getPixel(current+directions.at(dir).at(0)+directions.at(dir).at(1)).a <= alpha_limit) {
+                    auto maindir = current+directions.at(dir).at(0);
+                    auto maindirNormal = current+directions.at(dir).at(0)+directions.at(dir).at(1);
+
+                    auto dirFound = true;
+
+                    while(img->getPixel(maindir).a > alpha_limit
+                          || img->getPixel(maindirNormal).a <= alpha_limit
+                            || partOfChain[maindir.y][maindir.x] ) { // first run ignoring chain parts
                         dir = (dir+1)%directions.size();
+
+                        maindir = current+directions.at(dir).at(0);
+                        maindirNormal = current+directions.at(dir).at(0)+directions.at(dir).at(1);
+
                         count++;
-                        assert(count < 8 && "chain");
+                        if(count > 8){
+                            dirFound = false;
+                            break;
+                        }
+
+                        //assert(count < 8 && "chain");
                     }
 
-                    cout<< "->("<< current.x << "/"<< current.y << ")";
+                    if(!dirFound){ // now with already pixel that are already part of a chain
+                        count = 0;
+                        while(img->getPixel(maindir).a > alpha_limit
+                              || img->getPixel(maindirNormal).a <= alpha_limit ) {
+                            dir = (dir+1)%directions.size();
+
+                            maindir = current+directions.at(dir).at(0);
+                            maindirNormal = current+directions.at(dir).at(0)+directions.at(dir).at(1);
+
+                            count++;
+                            assert(count < 8 && "chain");
+                        }
+                    }
+
+                    //cout<< "->("<< current.x << "/"<< current.y << ")";
 
                     //add found chainlink into rim
                     rim.push_back(current);
+                    partOfChain[current.y+1][current.x+1] = true;
                     current = current+directions.at(dir).at(0);
                     pixelcount++;
                     assert(pixelcount < img->width*img->height); // we somehow ended in a loop that is longer than we have pixels

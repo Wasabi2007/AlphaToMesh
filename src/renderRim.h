@@ -8,6 +8,7 @@
 #include <vector>
 #include "../glew/include/GL/glew.h"
 #include "../glm/glm.hpp"
+#include "shader.h"
 
 class renderRim {
 private:
@@ -16,9 +17,7 @@ private:
     GLuint VertexArrayID;
     GLuint vertexbuffer;
 
-    GLuint VertexShader;
-    GLuint FragmentShader;
-    GLuint ProgrammShader;
+    static shader myshader;
 
     GLuint Texture;
 public:
