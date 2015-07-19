@@ -124,6 +124,9 @@ vector<vector<ivec2>> findRims(float alpha_limit, const imageStruct* img) {
                       || img->getPixel(start+directions.at(dir).at(0)+directions.at(dir).at(1)).a <= alpha_limit) { // is rigth from that pixel still an opace pixel?
                     dir = (dir + 1) % directions.size(); // if we didn't found it look into an other direction
                     count++;
+                    if(count > 7){ // only one pixel transparent
+                        goto contin; //todo do i realy need a goto?
+                    }
                     assert(count < 8 && "start"); // if we looked into all directions and didn't found anything
                 }
 
@@ -162,7 +165,7 @@ vector<vector<ivec2>> findRims(float alpha_limit, const imageStruct* img) {
 
                     while(img->getPixel(maindir).a > alpha_limit
                           || img->getPixel(maindirNormal).a <= alpha_limit
-                            || partOfChain[maindir.y][maindir.x] ) { // first run ignoring chain parts
+                            || partOfChain[maindir.y+1][maindir.x+1] ) { // first run ignoring chain parts
                         dir = (dir+1)%directions.size();
 
                         maindir = current+directions.at(dir).at(0);
@@ -204,6 +207,7 @@ vector<vector<ivec2>> findRims(float alpha_limit, const imageStruct* img) {
                 rims.push_back(rim); // add rim to found rims
                 rim = vector<ivec2>(); // an new rim for the next run
             }
+            contin:;
         }
     }
     return rims;
