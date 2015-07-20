@@ -31,8 +31,13 @@ vector<renderRim> rimsToRender;
 vector<vector<ivec2>> findRims(float alpha_limit, const imageStruct* img) ;
 vector<vector<vec2>> simplyfiyRims(vector<vector<ivec2>> rims, float errorMargin);
 
+string filename;
+
+float alpha_limit = 0.9f;
+float errorMarginDegree = 1.f;
+
 void init(){
-    img = imageStruct::load("test.png");
+    img = imageStruct::load(filename.c_str());
     renderImage1 = new renderImage(*img);
 
     std::cout << std::fixed << std::setprecision(1);
@@ -43,7 +48,7 @@ void init(){
         std::cout << std::endl;
     }*/
 
-    auto alpha_limit = 0.9f;
+
 
     vector<vector<ivec2>> rims = findRims(alpha_limit,img);
 
@@ -51,7 +56,7 @@ void init(){
         rimsToRender.emplace_back(rim,long(img->width),long(img->height));
     }
 
-    vector<vector<vec2>> simpleRims = simplyfiyRims(rims,1.f);
+    vector<vector<vec2>> simpleRims = simplyfiyRims(rims,errorMarginDegree);
     for(auto& rim: simpleRims){
         /*cout << endl << "simple rim" << endl;
         for(auto& v : rim){
@@ -284,6 +289,20 @@ int main(int argc, char *argv[]) {
     //is.open("test.png",std::ifstream::in | ios_base::binary);
     //std::cout << "png is valid? " << validate(is) << std::endl;
     //is.close();
+
+    if(argc > 1){
+        filename = argv[1];
+    } else {
+        filename = "test0.png";
+    }
+
+    if(argc > 2){
+        alpha_limit = stof(argv[2]);
+    }
+    if(argc > 3){
+        errorMarginDegree = stof(argv[3]);
+    }
+
     glewExperimental = true;
 
     glfwInit();
