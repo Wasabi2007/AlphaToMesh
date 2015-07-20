@@ -68,7 +68,6 @@ void init(){
     //glEnable(GL_ALPHA_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-
 }
 
 vector<vector<ivec2>> findRims(float alpha_limit, const imageStruct* img) {
@@ -118,101 +117,109 @@ vector<vector<ivec2>> findRims(float alpha_limit, const imageStruct* img) {
             auto start = ivec2(static_cast<int>(x),static_cast<int>(y));
 
             //find every possible alpha rim
-            if(pixel.a <= alpha_limit && next.a > alpha_limit){ // check if we are on the rim of an "object" and is part of a rim
+            if(pixel.a <= alpha_limit && next.a > alpha_limit) { // check if we are on the rim of an "object" and is part of a rim
                 unsigned long long dir = 0;
-                cout<< endl << "new Rim" << endl;
+                cout << endl << "new Rim" << endl;
                 //cout<< "("<< start.x << "/"<< start.y << ")";
                 int count = 0;
 
+                bool pixelOnly = false;
+
                 //get a head start
-                while(img->getPixel(start+directions.at(dir).at(0)).a > alpha_limit // is where I want to walk still enough transparancy?
-                      || img->getPixel(start+directions.at(dir).at(0)+directions.at(dir).at(1)).a <= alpha_limit) { // is rigth from that pixel still an opace pixel?
+                while (img->getPixel(start + directions.at(dir).at(0)).a >
+                       alpha_limit // is where I want to walk still enough transparancy?
+                       || img->getPixel(start + directions.at(dir).at(0) + directions.at(dir).at(1)).a <=
+                          alpha_limit) { // is rigth from that pixel still an opace pixel?
                     dir = (dir + 1) % directions.size(); // if we didn't found it look into an other direction
                     count++;
-                    if(count > 7){ // only one pixel transparent
-                        goto contin; //todo do i realy need a goto?
+                    if (count > 7) { // only one pixel transparent
+                        pixelOnly = true;
+                        break;
                     }
                     assert(count < 8 && "start"); // if we looked into all directions and didn't found anything
                 }
+                if (!pixelOnly) {
 
-                auto current = start+directions.at(dir).at(0); // set headstart so that the search dont end imdiataly;
-                rim.push_back(start);
-                partOfChain[start.y+1][start.x+1] = true;
-                partOfChain[current.y+1][current.x+1] = true;
-                auto pixelcount = 0;
-                //todo maybe change to a do while
-                while(current != start){ //Run along the rim till we have a loop
+                    auto current =
+                            start + directions.at(dir).at(0); // set headstart so that the search dont end imdiataly;
+                    rim.push_back(start);
+                    partOfChain[start.y + 1][start.x + 1] = true;
+                    partOfChain[current.y + 1][current.x + 1] = true;
+                    auto pixelcount = 0;
+                    //todo maybe change to a do while
+                    while (current != start) { //Run along the rim till we have a loop
 
-                    //prevent a loop that doesn't end in the start
-                    auto found = find(rim.begin(),rim.end(),current);
-                    if(found != rim.end()){
+                        //prevent a loop that doesn't end in the start
+                        auto found = find(rim.begin(), rim.end(), current);
+                        if (found != rim.end()) {
 
-                        for(auto& p : rim){
-                            partOfChain[p.y+1][p.x+1] = false;
-                        }
+                            for (auto &p : rim) {
+                                partOfChain[p.y + 1][p.x + 1] = false;
+                            }
 
-                        vector<ivec2> buf;
-                        for(;found!=rim.end();found++){
-                            buf.push_back(*found);
-                            partOfChain[(*found).y+1][(*found).x+1] = true;
-                        }
-                        rim.swap(buf);
-                        break;
-                    }
-
-
-                    count = 0;
-                    //find next rim pixel
-                    auto maindir = current+directions.at(dir).at(0);
-                    auto maindirNormal = current+directions.at(dir).at(0)+directions.at(dir).at(1);
-
-                    auto dirFound = true;
-
-                    while(img->getPixel(maindir).a > alpha_limit
-                          || img->getPixel(maindirNormal).a <= alpha_limit
-                            || partOfChain[maindir.y+1][maindir.x+1] ) { // first run ignoring chain parts
-                        dir = (dir+1)%directions.size();
-
-                        maindir = current+directions.at(dir).at(0);
-                        maindirNormal = current+directions.at(dir).at(0)+directions.at(dir).at(1);
-
-                        count++;
-                        if(count > 8){
-                            dirFound = false;
+                            vector<ivec2> buf;
+                            for (; found != rim.end(); found++) {
+                                buf.push_back(*found);
+                                partOfChain[(*found).y + 1][(*found).x + 1] = true;
+                            }
+                            rim.swap(buf);
                             break;
                         }
 
-                        //assert(count < 8 && "chain");
-                    }
 
-                    if(!dirFound){ // now with already pixel that are already part of a chain
                         count = 0;
-                        while(img->getPixel(maindir).a > alpha_limit
-                              || img->getPixel(maindirNormal).a <= alpha_limit ) {
-                            dir = (dir+1)%directions.size();
+                        //find next rim pixel
+                        auto maindir = current + directions.at(dir).at(0);
+                        auto maindirNormal = current + directions.at(dir).at(0) + directions.at(dir).at(1);
 
-                            maindir = current+directions.at(dir).at(0);
-                            maindirNormal = current+directions.at(dir).at(0)+directions.at(dir).at(1);
+                        auto dirFound = true;
+
+                        while (img->getPixel(maindir).a > alpha_limit
+                               || img->getPixel(maindirNormal).a <= alpha_limit
+                               || partOfChain[maindir.y + 1][maindir.x + 1]) { // first run ignoring chain parts
+                            dir = (dir + 1) % directions.size();
+
+                            maindir = current + directions.at(dir).at(0);
+                            maindirNormal = current + directions.at(dir).at(0) + directions.at(dir).at(1);
 
                             count++;
-                            assert(count < 8 && "chain");
+                            if (count > 8) {
+                                dirFound = false;
+                                break;
+                            }
+
+                            //assert(count < 8 && "chain");
                         }
+
+                        if (!dirFound) { // now with already pixel that are already part of a chain
+                            count = 0;
+                            while (img->getPixel(maindir).a > alpha_limit
+                                   || img->getPixel(maindirNormal).a <= alpha_limit) {
+                                dir = (dir + 1) % directions.size();
+
+                                maindir = current + directions.at(dir).at(0);
+                                maindirNormal = current + directions.at(dir).at(0) + directions.at(dir).at(1);
+
+                                count++;
+                                assert(count < 8 && "chain");
+                            }
+                        }
+
+                        //cout<< "->("<< current.x << "/"<< current.y << ")";
+
+                        //add found chainlink into rim
+                        rim.push_back(current);
+                        partOfChain[current.y + 1][current.x + 1] = true;
+                        current = current + directions.at(dir).at(0);
+                        pixelcount++;
+                        assert(pixelcount < img->width *
+                                            img->height); // we somehow ended in a loop that is longer than we have pixels
                     }
 
-                    //cout<< "->("<< current.x << "/"<< current.y << ")";
-
-                    //add found chainlink into rim
-                    rim.push_back(current);
-                    partOfChain[current.y+1][current.x+1] = true;
-                    current = current+directions.at(dir).at(0);
-                    pixelcount++;
-                    assert(pixelcount < img->width*img->height); // we somehow ended in a loop that is longer than we have pixels
+                    rims.push_back(rim); // add rim to found rims
+                    rim = vector<ivec2>(); // an new rim for the next run
                 }
-
-                rims.push_back(rim); // add rim to found rims
-                rim = vector<ivec2>(); // an new rim for the next run
             }
-            contin:;
         }
     }
     return rims;
@@ -274,6 +281,8 @@ void mainLoop(float dt){
     glClearColor(0.4f,0.6f,0.9f,1.f);
     glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 
+    glLineWidth(50.f);
+    //glPointSize(50.f);
     renderImage1->Render();
     for(auto& r : rimsToRender){
         r.Render();
@@ -313,7 +322,7 @@ int main(int argc, char *argv[]) {
 
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL", nullptr, nullptr); // Windowed
+    GLFWwindow* window = glfwCreateWindow(800, 600, "AlphaToMesh", nullptr, nullptr); // Windowed
     //GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL", glfwGetPrimaryMonitor(), nullptr); // Fullscreen
     glfwMakeContextCurrent(window);
 

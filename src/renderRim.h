@@ -19,7 +19,6 @@ private:
 
     static shader myshader;
 
-    GLuint Texture;
 public:
     renderRim(const std::vector<glm::vec2>& posin, long width, long height);
     renderRim(const std::vector<glm::ivec2>& posin, long width, long height);
