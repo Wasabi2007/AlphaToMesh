@@ -11,11 +11,27 @@
 #include "../glm/glm.hpp"
 
 class triangleMesh {
+    enum VertexType{
+        DEFAULT,
+        START,
+        END,
+        SPLIT,
+        MERGE
+    };
+
     struct pointIndex{
         glm::vec3 pos;
         unsigned int index;
+        VertexType vertexType;
 
-        pointIndex(const glm::vec3 &pos, unsigned int index) : pos(pos), index(index) { }
+        pointIndex(const glm::vec3 &pos, unsigned int index, VertexType vertexType = VertexType::DEFAULT) : pos(pos), index(index) , vertexType(vertexType) { }
+    };
+
+    struct edge{
+        pointIndex p1;
+        pointIndex p2;
+
+        edge(const pointIndex &p1, const pointIndex &p2) : p1(p1), p2(p2) { }
     };
 
 private:
@@ -37,6 +53,7 @@ private:
     void initGeom();
     void initShader();
     void triangluate();
+    std::vector<pointIndex> triangluateMonoton(std::vector<pointIndex> MontonPolygon);
 };
 
 

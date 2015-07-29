@@ -4,6 +4,9 @@
 
 #include "triangleMesh.h"
 #include <algorithm>
+#include <queue>
+#include <map>
+#include "../glm/gtx/vector_angle.hpp"
 
 using namespace glm;
 using namespace std;
@@ -16,6 +19,8 @@ triangleMesh::triangleMesh(const std::vector<vec2> &posin, long width, long heig
         pos.emplace_back((float(p.x)-width*0.5f)/float(width)*2, (float(p.y)-height*0.5f)/float(height)*2,0.0f);
     }
 
+    reverse(pos.begin(),pos.end());
+
     triangluate();
     initGeom();
     initShader();
@@ -25,6 +30,8 @@ triangleMesh::triangleMesh(const std::vector<ivec2> &posin, long width, long hei
     for(auto& p : posin) {
         pos.emplace_back((p.x-width*0.5f)/width*2, (p.y-height*0.5f)/height*2,0.0f);
     }
+    reverse(pos.begin(),pos.end());
+
 
     triangluate();
     initGeom();
@@ -34,10 +41,10 @@ triangleMesh::triangleMesh(const std::vector<ivec2> &posin, long width, long hei
 void triangleMesh::Render() {
     glBindVertexArray(VertexArrayID);
     myshader.loadShader();
-    glDrawElements(GL_TRIANGLES,      // mode
-                   triangleIndexes.size(),    // count
-                   GL_UNSIGNED_INT,   // type
-                   (void*)0) ;          // element array buffer offset)
+    glDrawElements(GL_TRIANGLES,             // mode
+                   triangleIndexes.size(),   // count
+                   GL_UNSIGNED_INT,          // type
+                   (void*)0) ;               // element array buffer offset)
 }
 
 void triangleMesh::initGeom() {
@@ -81,13 +88,78 @@ void triangleMesh::initShader() {
 }
 
 void triangleMesh::triangluate() {
+
+    vector<edge> edges;
+
+    static auto comp = [](const pointIndex& a, const pointIndex& b){
+        return (a.pos.y == b.pos.y?a.pos.x < b.pos.x:a.pos.y < b.pos.y);
+    };
+
+    std::priority_queue<pointIndex,std::vector<pointIndex>,decltype(comp)> Q(comp);
+
+    std::vector<pointIndex> P;
+
+    for(unsigned index = 0; index < pos.size(); ++index){
+
+        auto& p0 = pos[(index-1+pos.size())%pos.size()];
+        auto& p = pos[index];
+        auto& p1 = pos[(index+1)%pos.size()];
+
+
+        auto p0rel = p0 - p;
+        auto p1rel = p1 - p;
+
+        VertexType typ = VertexType::DEFAULT ;
+
+        if(p0.y < p.y && p1.y < p.y && degrees(angle(p0rel,p1rel)) < 180){
+            typ = VertexType::START;
+        } else if(p0.y > p.y && p1.y > p.y && degrees(angle(p0rel,p1rel)) < 180){
+            typ = VertexType::END;
+        }else if(p0.y < p.y && p1.y < p.y && degrees(angle(p0rel,p1rel)) > 180){
+            typ = VertexType::SPLIT;
+        }else if(p0.y > p.y && p1.y > p.y && degrees(angle(p0rel,p1rel)) > 180){
+            typ = VertexType::MERGE;
+        }
+        Q.emplace(p,index,typ);
+        P.emplace_back(p,index,typ);
+    }
+
+
+    for(unsigned index = 0; index < P.size(); ++index) {
+        auto &p = P[index];
+        auto &p1 = P[(index + 1) % P.size()];
+
+        edges.emplace_back(p,p1);
+    }
+
+
+    vector<edge> T;
+
+    pointIndex* helper = nullptr;
+
+    while (!Q.empty()){
+        auto vi = Q.top();
+        Q.pop();
+
+        switch(vi.vertexType){
+            case START:{
+                auto& e = edges[vi.index];
+
+            } break;
+        }
+    }
+
+
+}
+
+vector<triangleMesh::pointIndex> triangleMesh::triangluateMonoton(vector<pointIndex> MontonPolygon) {
     vector<pointIndex> Triangles;
 
     vector<pointIndex> V;
     vector<pointIndex> L;
     unsigned int count = -1;
-    for(auto& p : pos){
-        V.emplace_back(p,count++);
+    for(auto& p : MontonPolygon){
+        V.push_back(p);
     }
 
     sort (V.begin(), V.end(), [](const pointIndex& a, const pointIndex& b){
@@ -107,4 +179,5 @@ void triangleMesh::triangluate() {
         bool opposit = false;
     }
 
+    return Triangles;
 }
