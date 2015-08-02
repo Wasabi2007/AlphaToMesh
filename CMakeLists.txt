@@ -23,4 +23,20 @@ SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAG
 
 set(SOURCE_FILES main.cpp util/stacktrace.hpp util/stacktrace.cpp)
 add_executable(AlphaToMesh ${SOURCE_FILES} src/imageStruct.hpp src/renderImage.cpp src/renderImage.h src/renderRim.cpp src/renderRim.h src/shader.h src/triangleMesh.cpp src/triangleMesh.h)
-target_link_libraries(AlphaToMesh imagehlp glm glfw GLEW_static opengl32 lodepng)
+if(WIN32)
+    set(libs imagehlp)
+else(WIN32)
+    set(libs X11 Xxf86vm Xrandr pthread Xi Xinerama Xcursor)
+endif(WIN32)
+
+set(libs ${libs} glm glfw GLEW_static)
+
+
+if(WIN32)
+    set(libs ${libs} opengl32 )
+else(WIN32)
+    set(libs ${libs} GL )
+endif(WIN32)
+
+
+target_link_libraries(AlphaToMesh ${libs} lodepng)

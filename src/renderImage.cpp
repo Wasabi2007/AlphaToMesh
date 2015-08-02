@@ -105,7 +105,7 @@ void renderImage::initShader() {
 
     // Read the Vertex Shader code from the file
     std::string VertexShaderCode;
-    VertexShaderCode += "#version 420\n";
+    VertexShaderCode += "#version 330\n";
     VertexShaderCode += "in vec4 in_pos;\n";
     VertexShaderCode += "in vec2 in_uv;\n";
     VertexShaderCode += "out vec2 var_uv;\n";
@@ -117,7 +117,7 @@ void renderImage::initShader() {
 
     // Read the Fragment Shader code from the file
     std::string FragmentShaderCode;
-    FragmentShaderCode += "#version 420\n";
+    FragmentShaderCode += "#version 330\n";
     FragmentShaderCode += "in vec2 var_uv;\n";
     FragmentShaderCode += "uniform sampler2D tex;\n";
     FragmentShaderCode += "out vec4 out_color;\n";
@@ -158,8 +158,8 @@ void renderImage::initShader() {
     glAttachShader(ProgrammShader, FragmentShader);
 
 
-    glBindAttribLocation(ProgrammShader, 1, "in_pos");//Attribut Nummer 1 soll in in_pos im Vertex Shader zur Verfügung stehen
-    glBindAttribLocation(ProgrammShader, 2, "in_uv");//Attribut Nummer 3 soll in in_uv im Vertex Shader zur Verfügung stehen
+    glBindAttribLocation(ProgrammShader, 1, "in_pos");//Attribut Nummer 1 soll in in_pos im Vertex Shader zur Verfï¿½gung stehen
+    glBindAttribLocation(ProgrammShader, 2, "in_uv");//Attribut Nummer 3 soll in in_uv im Vertex Shader zur Verfï¿½gung stehen
     glBindFragDataLocation(ProgrammShader, 0, "out_color");//out_color ist Farbe 0 (die in dem Framebuffer geschrieben werden)
 
 
