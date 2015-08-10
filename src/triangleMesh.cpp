@@ -11,6 +11,10 @@
 using namespace glm;
 using namespace std;
 
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
 shader triangleMesh::myshader{};
 
 triangleMesh::triangleMesh(const std::vector<vec2> &posin, long width, long height) : VertexArrayID{0}, vertexbuffer{0} {
@@ -95,9 +99,9 @@ void triangleMesh::triangluate() {
         return (a.pos.y == b.pos.y?a.pos.x < b.pos.x:a.pos.y < b.pos.y);
     };
 
-    std::priority_queue<pointIndex,std::vector<pointIndex>,decltype(comp)> Q(comp);
+    //std::deq <pointIndex,std::vector<pointIndex>,decltype(comp)> Q(comp); // y sortet pointlist
 
-    std::vector<pointIndex> P;
+    std::vector<pointIndex> P; // normal pointlist used for building the edges
 
     for(unsigned index = 0; index < pos.size(); ++index){
 
@@ -120,9 +124,14 @@ void triangleMesh::triangluate() {
         }else if(p0.y > p.y && p1.y > p.y && degrees(angle(p0rel,p1rel)) > 180){
             typ = VertexType::MERGE;
         }
-        Q.emplace(p,index,typ);
+        //Q.emplace(p,index,typ);
         P.emplace_back(p,index,typ);
     }
+
+    std::vector<pointIndex> Q;
+    std::copy(P.begin(),P.end(),Q.begin());
+
+    std::sort(Q.begin(),Q.end(),comp); // y sortet pointlist
 
 
     for(unsigned index = 0; index < P.size(); ++index) {
@@ -133,18 +142,52 @@ void triangleMesh::triangluate() {
     }
 
 
+    //setup helper
+    map<unsigned int,pointIndex> helper;
+
+    for (unsigned int i = 1; i < Q.size();i++) {
+        auto& vi = Q.at(i);
+        auto& edge = edges.at(vi.index);
+
+        auto Ay = edge.p1.pos.y;
+        auto By = edge.p2.pos.y;
+        auto& minEdgeY = std::min(Ay, By);
+        auto& maxEdgeY = std::max(Ay, By);
+
+        auto index = i-1;
+        auto& b4 = Q.at(index);
+        auto Y = b4.pos.y;
+        while (Y > minEdgeY && Y < maxEdgeY){ // look if point is x parallel to the edge
+            auto Bx = edge.p2.pos.x;
+            auto Ax = edge.p1.pos.x;
+            auto X = b4.pos.x;
+            if(sign( (Bx - Ax)*(Y - Ay) - (By - Ay)*(X - Ax) ) < 0 // is the helper left to the edge direction
+               && b4.vertexType != VertexType::SPLIT){
+                helper.emplace(i,b4);
+                return;
+            }
+            b4 = Q.at(index--);
+            Y = b4.pos.y;
+        }
+    }
+
+
+
+
     vector<edge> T;
 
-    pointIndex* helper = nullptr;
-
-    while (!Q.empty()){
-        auto vi = Q.top();
-        Q.pop();
+    for (auto& vi : Q){
 
         switch(vi.vertexType){
             case START:{
                 auto& e = edges[vi.index];
-
+                T.emplace_back(e);
+                helper.at(vi.index) = vi.index;
+            } break;
+            case END:{
+                auto& e = edges[vi.index];
+                T.emplace_back(e);
+                helper.at(vi.index) = vi.index;
             } break;
         }
     }
