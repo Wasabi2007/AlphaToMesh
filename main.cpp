@@ -22,21 +22,25 @@
 #include "src/imageStruct.hpp"
 #include "src/renderImage.h"
 #include "src/renderRim.h"
+#include "src/triangleMesh.h"
 
 imageStruct* img;
 renderImage* renderImage1;
 
-vector<renderRim> rimsToRender;
-
 vector<vector<ivec2>> findRims(float alpha_limit, const imageStruct* img) ;
 vector<vector<vec2>> simplyfiyRims(vector<vector<ivec2>> rims, float errorMargin);
+
+
+
 
 string filename;
 
 float alpha_limit = 0.9f;
 float errorMarginDegree = 1.f;
 
-void init(){
+bool stepp = false;
+
+void init(vector<renderRim>& rimsToRender,vector<triangleMesh>& meshToRender){
     img = imageStruct::load(filename.c_str());
     renderImage1 = new renderImage(*img);
 
@@ -62,7 +66,8 @@ void init(){
         for(auto& v : rim){
             cout<< "("<< v.x << "/"<< v.y << ")->";
         }*/
-        rimsToRender.emplace_back(rim,long(img->width),long(img->height));
+        //rimsToRender.emplace_back(rim,long(img->width),long(img->height));
+        meshToRender.emplace_back(rim,long(img->width),long(img->height));
     }
 
     //glEnable(GL_ALPHA_TEST);
@@ -225,46 +230,50 @@ vector<vector<ivec2>> findRims(float alpha_limit, const imageStruct* img) {
     return rims;
 }
 
-vector<vec2> simplyfiyRim(vector<ivec2> rim, float errorMargin){
+vector<vec2> simplyfiyRim(vector<vec2> rim, float errorMargin){
+    //DouglasPeucker
+    // Find the point with the maximum distance
+
     vector<vec2> erg;
-    for(auto& r : rim){
+
+    auto dmax = 0.f;
+    auto index = size_t(0);
+    auto end = rim.size()-1;
+    for(auto i = size_t(1); i < ( end ); ++i) {
+        auto line = rim[end]-rim[0];
+        auto relpoint = rim[i]-rim[0];
+        auto distToLine = (dot(relpoint,line)/dot(line,line)*line)-relpoint;
+        auto d = length(distToLine);
+        if ( d > dmax ) {
+            index = i;
+            dmax = d;
+        }
+    }
+    // If max distance is greater than epsilon, recursively simplify
+    if ( dmax > errorMargin ) {
+        // Recursive call
+        auto recResults1 = simplyfiyRim(vector<vec2>(rim.begin(),rim.begin()+index), errorMargin);
+        auto recResults2 = simplyfiyRim(vector<vec2>(rim.begin()+index,rim.end()), errorMargin);
+
+        // Build the result list
+        erg = recResults1;//{recResults1[1...length(recResults1)-1] recResults2[1...length(recResults2)]}
+        erg.insert(erg.end(),recResults2.begin(),recResults2.end());
+    } else {
+        erg = vector<vec2>();
+        erg.push_back(rim[0]);
+        erg.push_back(rim[end]);
+    }
+    // Return the result
+
+    return erg;
+}
+
+vector<vec2> simplyfiyRim(vector<ivec2> rim, float errorMargin) {
+    vector<vec2> erg;
+    for (auto &r : rim) {
         erg.emplace_back(float(r.x), float(r.y));
     }
-
-    auto noSimplification = false;
-    while(!noSimplification){
-        noSimplification = true;
-        vector<vec2> buf;
-        for(size_t i = 0; i < erg.size()-2;){
-            auto vec1 = erg.at(i);
-            auto vec2 = erg.at(i++);
-            auto vec3 = erg.at(i++);
-
-            auto diff1 = vec2-vec1;
-            auto diff2 = vec3-vec1;
-
-            auto diffangle = degrees(angle(diff1,diff2));
-            //cout << "angle: " << diffangle << endl;
-            while(diffangle < errorMargin){
-                vec2 = vec3;
-                i = (i+1)%erg.size();
-                vec3 = erg.at(i);
-                diff1 = vec2-vec1;
-                diff2 = vec3-vec1;
-                diffangle = degrees(angle(diff1,diff2));
-            }
-            if(find(buf.begin(),buf.end(),vec1) == buf.end()) {
-                buf.push_back(vec1);
-            }
-            if(find(buf.begin(),buf.end(),vec2) == buf.end()) {
-                buf.push_back(vec2);
-            }
-            i--;
-        }
-        erg.swap(buf);
-        buf.clear();
-    }
-    return erg;
+    return simplyfiyRim(erg,errorMargin);
 }
 
 vector<vector<vec2>> simplyfiyRims(vector<vector<ivec2>> rims, float errorMargin){
@@ -277,23 +286,48 @@ vector<vector<vec2>> simplyfiyRims(vector<vector<ivec2>> rims, float errorMargin
     return erg;
 }
 
-void mainLoop(float dt){
+void mainLoop(float dt,vector<renderRim>& rimsToRender,vector<triangleMesh>& meshToRender){
     glClearColor(0.4f,0.6f,0.9f,1.f);
     glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 
-    glLineWidth(50.f);
+    glLineWidth(5.0f);
     //glPointSize(50.f);
     renderImage1->Render();
-    for(auto& r : rimsToRender){
+
+    for(auto& r : meshToRender){
         r.Render();
     }
 
+    for(auto& r : rimsToRender){
+        //r.Render();
+    }
+
+    if(stepp){
+        stepp = false;
+        for(auto& r : meshToRender){
+            r.Step();
+        }
+    }
+
+
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && mods != GLFW_MOD_CONTROL)
+        stepp = true;
+
+    if (key == GLFW_KEY_SPACE && mods == GLFW_MOD_CONTROL)
+        stepp = true;
 }
 
 
 int main(int argc, char *argv[]) {
 
     Util::initStacktrace(argv[0]);
+
+    vector<renderRim> rimsToRender;
+    vector<triangleMesh> meshToRender;
     //std::ifstream is;
     //is.open("test.png",std::ifstream::in | ios_base::binary);
     //std::cout << "png is valid? " << validate(is) << std::endl;
@@ -321,13 +355,20 @@ int main(int argc, char *argv[]) {
 
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "AlphaToMesh", nullptr, nullptr); // Windowed
+    GLFWwindow* window = glfwCreateWindow(800*2, 600*2, "AlphaToMesh", nullptr, nullptr); // Windowed
     //GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL", glfwGetPrimaryMonitor(), nullptr); // Fullscreen
     glfwMakeContextCurrent(window);
 
+    glfwSetKeyCallback(window, key_callback);
+
     glewExperimental = GL_TRUE;
     glewInit();
-    init();
+    init(rimsToRender,meshToRender);
+
+    float lineWidth[2];
+    glGetFloatv(GL_LINE_WIDTH_RANGE, lineWidth);
+
+    //cout << lineWidth[0] << " " << lineWidth[1] << endl;
 
     while(!glfwWindowShouldClose(window))
     {
@@ -337,7 +378,7 @@ int main(int argc, char *argv[]) {
         static auto time = std::chrono::high_resolution_clock::now();
         static float dt = 0.f;
         dt = std::chrono::duration_cast<std::chrono::duration<float>>(time - std::chrono::high_resolution_clock::now()).count();
-        mainLoop(dt);
+        mainLoop(dt,rimsToRender,meshToRender);
         time = std::chrono::high_resolution_clock::now();
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)

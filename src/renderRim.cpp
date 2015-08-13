@@ -69,6 +69,6 @@ void renderRim::initGeom() {
 void renderRim::initShader() {
     if(!myshader.loaded){
         myshader = shader{"#version 330\nin vec4 in_pos;\nvoid main(){\ngl_Position=in_pos;\n}\n",
-                  "#version 330\nout vec4 out_color;\nvoid main(){\nout_color=vec4(0,1,0,1);\n}\n"};
+                  "#version 330\nout vec4 out_color;\nvoid main(){\nout_color=vec4(0.9,0.2,0.2,1);\n}\n"};
     }
 }
