@@ -14,15 +14,19 @@ link_directories(Libs/MinGW/dlls)
 file(COPY data/ DESTINATION .)
 
 add_subdirectory(glm)
+include_directories(glm)
 add_subdirectory(glew)
 add_subdirectory(glfw)
 add_subdirectory(lodepng)
+include_directories(lodepng)
+
+
 
 SET(GCC_COVERAGE_LINK_FLAGS    "-static-libgcc -static-libstdc++")
 SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
 
 set(SOURCE_FILES main.cpp util/stacktrace.hpp util/stacktrace.cpp)
-add_executable(AlphaToMesh ${SOURCE_FILES} src/imageStruct.hpp src/renderImage.cpp src/renderImage.h src/renderRim.cpp src/renderRim.h src/shader.h src/triangleMesh.cpp src/triangleMesh.h)
+add_executable(AlphaToMesh ${SOURCE_FILES} src/imageStruct.hpp src/renderImage.cpp src/renderImage.h src/renderRim.cpp src/renderRim.h src/shader.h src/triangleMesh.cpp src/triangleMesh.h src/Rim.cpp src/Rim.h)
 if(WIN32)
     set(libs imagehlp)
 else(WIN32)
