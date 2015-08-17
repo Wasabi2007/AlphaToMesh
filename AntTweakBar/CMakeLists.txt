@@ -1,0 +1,57 @@
+cmake_minimum_required(VERSION 2.8)
+project(AntTweakBar)
+
+include(FindOpenGL)
+#include(FindSDL)
+
+set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
+
+# Project includes
+set(ATB_INCLUDE_DIR include)
+
+# Standard Packages
+#find_package(OpenGL REQUIRED)
+#find_package(GLUT)
+#find_library(GLFW_LIBRARY glfw)
+if(WIN32)
+ add_definitions(-D_WIN32)
+endif()
+if(UNIX)
+ add_definitions(-D_UNIX)
+endif()
+
+include_directories( ${ATB_INCLUDE_DIR}
+                     ${OPENGL_INCLUDE_DIR}
+                     ${GLFW_INCLUDE_DIR})
+
+set( SOURCES src/LoadOGL.cpp
+             src/LoadOGLCore.cpp
+             src/TwColors.cpp
+             src/TwMgr.cpp
+             src/TwPrecomp.cpp
+             src/TwEventSFML.cpp
+             src/TwOpenGL.cpp
+             src/TwOpenGLCore.cpp
+             src/TwBar.cpp
+             src/TwFonts.cpp
+             #src/TwEventGLUT.c
+             src/TwEventGLFW.c
+             src/TwEventGLFW3.c
+             #src/TwEventSDL.c
+             #src/TwEventSDL12.c
+             #src/TwEventSDL13.c
+             )
+
+
+add_library(AntTweakBar STATIC ${SOURCES})
+
+message("Extra libs: ${EXTRA_LIBS}")
+target_link_libraries(AntTweakBar  ${GLUT_LIBRARY}
+                                   ${OPENGL_LIBRARY}
+                                   ${EXTRA_LIBS})
+
+
+#install(TARGETS AntTweakBar LIBRARY DESTINATION lib)
+
+#add_subdirectory(examples)

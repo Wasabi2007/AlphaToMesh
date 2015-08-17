@@ -18,7 +18,9 @@ include_directories(glm)
 add_subdirectory(glew)
 add_subdirectory(glfw)
 add_subdirectory(lodepng)
+add_subdirectory(AntTweakBar)
 include_directories(lodepng)
+include_directories(AntTweakBar/include)
 
 
 
@@ -33,7 +35,7 @@ else(WIN32)
     set(libs X11 Xxf86vm Xrandr pthread Xi Xinerama Xcursor)
 endif(WIN32)
 
-set(libs ${libs} glm glfw GLEW_static)
+set(libs AntTweakBar ${libs} glm glfw GLEW_static)
 
 
 if(WIN32)
