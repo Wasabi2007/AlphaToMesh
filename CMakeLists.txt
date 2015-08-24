@@ -3,7 +3,7 @@ project(AlphaToMesh)
 
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
 
 add_definitions("-DSTACKTRACE" "-DGLEW_STATIC")
 #include_directories(Libs/MinGW/libpng/header)
@@ -27,7 +27,7 @@ include_directories(AntTweakBar/include)
 SET(GCC_COVERAGE_LINK_FLAGS    "-static-libgcc -static-libstdc++")
 SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
 
-set(SOURCE_FILES main.cpp util/stacktrace.hpp util/stacktrace.cpp)
+set(SOURCE_FILES main.cpp util/stacktrace.hpp util/stacktrace.cpp src/MainClass.cpp src/MainClass.hpp)
 add_executable(AlphaToMesh ${SOURCE_FILES} src/imageStruct.hpp src/renderImage.cpp src/renderImage.h src/renderRim.cpp src/renderRim.h src/shader.h src/triangleMesh.cpp src/triangleMesh.h src/Rim.cpp src/Rim.h)
 if(WIN32)
     set(libs imagehlp)

@@ -5,6 +5,7 @@
 #include "../lodepng/lodepng.h"
 #include "renderImage.h"
 #include <string>
+#include <gtx/string_cast.hpp>
 
 
 renderImage::renderImage(const char* filename):renderImage(*imageStruct::load(filename)){
@@ -14,7 +15,7 @@ renderImage::renderImage(const char* filename):renderImage(*imageStruct::load(fi
 renderImage::renderImage(imageStruct img):
         img(img),VertexArrayID{0},vertexbuffer{0},
          elementbuffer{0}, VertexShader{0}, FragmentShader{0},
-         ProgrammShader{0}, Texture{0}{
+         ProgrammShader{0}, Texture{0},MVP{1}{
     initGeom();
     initShader();
     initTexture();
@@ -22,6 +23,8 @@ renderImage::renderImage(imageStruct img):
 
 void renderImage::Render() {
     glBindVertexArray(VertexArrayID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+
     glUseProgram(ProgrammShader);
     glBindTexture(GL_TEXTURE_2D, Texture);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -33,17 +36,17 @@ void renderImage::initGeom() {
 
 
     // An array of 3 vectors which represents 3 vertices
-    static const GLfloat g_vertex_buffer_data[] = {
-            -1.0f, -1.0f, 0.0f,//Position
+    const GLfloat g_vertex_buffer_data[] = {
+            0.0f, 0.0f, 0.0f,//Position
             0.0f, 0.0f, //UV
 
-            1.0f, -1.0f, 0.0f,//Position
+            float(img.width), 0.0f, 0.0f,//Position
             1.0f, 0.0f, //UV
 
-            1.0f,  1.0f, 0.0f,//Position
+            float(img.width),  float(img.height), 0.0f,//Position
             1.0f, 1.0f, //UV
 
-            -1.0f,  1.0f, 0.0f,//Position
+            0.0f,  float(img.height), 0.0f,//Position
             0.0f, 1.0f, //UV
     };
 
@@ -80,8 +83,8 @@ void renderImage::initGeom() {
             (void*)(3*4)            // array buffer offset
     );
 
-    std::vector<unsigned int> indices;
-
+    static std::vector<unsigned int> indices;
+    indices.clear();
 // fill "indices" as needed
 
     indices.push_back(0);
@@ -108,9 +111,10 @@ void renderImage::initShader() {
     VertexShaderCode += "#version 330\n";
     VertexShaderCode += "in vec4 in_pos;\n";
     VertexShaderCode += "in vec2 in_uv;\n";
+    VertexShaderCode += "uniform mat4 MVP;\n";
     VertexShaderCode += "out vec2 var_uv;\n";
     VertexShaderCode += "void main(){\n";
-    VertexShaderCode += "gl_Position=in_pos;\n";
+    VertexShaderCode += "gl_Position=MVP*in_pos;\n";
     VertexShaderCode += "var_uv=in_uv;\n";
     VertexShaderCode += "}\n";
 
@@ -152,7 +156,7 @@ void renderImage::initShader() {
     fprintf(stdout, "%s\n", &FragmentShaderErrorMessage[0]);
 
     // Link the program
-    fprintf(stdout, "Linking program\n");
+    //fprintf(stdout, "Linking program\n");
     ProgrammShader = glCreateProgram();
     glAttachShader(ProgrammShader, VertexShader);
     glAttachShader(ProgrammShader, FragmentShader);
@@ -174,6 +178,23 @@ void renderImage::initShader() {
 
     glUseProgram(ProgrammShader);
     glUniform1i(glGetUniformLocation(ProgrammShader, "tex"), 0);
+
+    reloadMVP(mat4());
+}
+
+renderImage::~renderImage(){
+    glDeleteShader(VertexShader);
+    glDeleteShader(FragmentShader);
+    glDeleteShader(ProgrammShader);
+}
+
+void renderImage::reloadMVP(mat4 mvp){
+    MVP = mvp;
+    //std::cout << glm::to_string(MVP) << std::endl;
+
+    glUseProgram(ProgrammShader);
+    GLint MatrixID = glGetUniformLocation(ProgrammShader, "MVP");
+    glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 }
 
 void renderImage::initTexture() {

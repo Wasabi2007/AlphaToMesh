@@ -17,9 +17,9 @@ private:
     GLuint VertexArrayID;
     GLuint vertexbuffer;
 
-    static shader myshader;
-
 public:
+
+    static shader myshader;
     renderRim(const std::vector<glm::vec2>& posin, long width, long height);
     renderRim(const std::vector<glm::ivec2>& posin, long width, long height);
 

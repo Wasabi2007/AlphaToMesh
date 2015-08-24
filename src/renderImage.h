@@ -21,14 +21,19 @@ private:
     GLuint ProgrammShader;
 
     GLuint Texture;
+
+    mat4 MVP;
 public:
     renderImage(const char* filename);
     renderImage(imageStruct img);
+    ~renderImage();
 
     void Render();
+    void reloadMVP(mat4 mvp);
 private:
     void initGeom();
     void initShader();
+
     void initTexture();
 };
 

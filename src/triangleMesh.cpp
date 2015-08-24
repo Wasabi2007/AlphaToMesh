@@ -26,8 +26,8 @@ triangleMesh::triangleMesh(const std::vector<vec2> &posin, long width, long heig
                                                                                       height{height} {
     unsigned int li = 0;
     for (auto &p : posin) {
-        pos.emplace_back((p.x - width * 0.5f) / float(width) * 2,
-                         (p.y - height * 0.5f) / float(height) * 2, 0.0f);
+        pos.emplace_back(p.x,
+                         p.y, 0.0f);
         //pos.emplace_back((float(p.x) - width * 0.5f) / float(width) * 2, (float(p.y) - height * 0.5f) / float(height) * 2, 0.0f);
         P.emplace_back(p.x, p.y );
         indexList.push_back(li);
@@ -48,8 +48,8 @@ triangleMesh::triangleMesh(const std::vector<ivec2> &posin, long width, long hei
                                                                                        vertexbuffer{0} {
     unsigned int li = 0;
     for (auto &p : posin) {
-        pos.emplace_back((float(p.x) - width * 0.5f) / width * 2,
-                        (float(p.y) - height * 0.5f) / height * 2, 0.0f);
+        pos.emplace_back(float(p.x),
+                        float(p.y), 0.0f);
         P.emplace_back(float(p.x), float(p.y) );
         indexList.push_back(li);
         li++;
@@ -124,9 +124,9 @@ void triangleMesh::initGeom() {
 
 void triangleMesh::initShader() {
     if (!myshader.loaded && !lineShader.loaded) {
-        myshader = shader{"#version 330\nin vec4 in_pos;\nvoid main(){\ngl_Position=in_pos;\n}\n",
+        myshader = shader{"#version 330\nin vec4 in_pos;\nuniform mat4 MVP;\nvoid main(){\ngl_Position=MVP*in_pos;\n}\n",
                           "#version 330\nout vec4 out_color;\nvoid main(){\nout_color=vec4(1.0,0.0,0.0,1);\n}\n"};
-        lineShader = shader{"#version 330\nin vec4 in_pos;\nvoid main(){\ngl_Position=in_pos;\n}\n",
+        lineShader = shader{"#version 330\nin vec4 in_pos;\nuniform mat4 MVP;\nvoid main(){\ngl_Position=MVP*in_pos;\n}\n",
                             "#version 330\nout vec4 out_color;\nvoid main(){\nout_color=vec4(0.0,1.0,0.0,1);\n}\n"};
     }
 }
@@ -287,7 +287,7 @@ void triangleMesh::categorize(vector<vec2> &P, vector<unsigned int> &indexList, 
     }
 }
 
-void triangleMesh::Step() {
+bool triangleMesh::Step() {
 
     if (!E.empty()) {
         auto i = E.front();
@@ -314,5 +314,5 @@ void triangleMesh::Step() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * triangleIndexes.size(), triangleIndexes.data(),
                  GL_STATIC_DRAW);
 
-
+    return !E.empty();
 }

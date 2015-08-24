@@ -9,17 +9,20 @@
 #include "../glew/include/GL/glew.h"
 #include <string>
 #include <vector>
+#include <glm.hpp>
 
 struct shader {
     GLuint VertexShader;
     GLuint FragmentShader;
     GLuint ProgrammShader;
 
+    glm::mat4 mvp;
+
     bool loaded;
 
     shader():VertexShader(0),FragmentShader(0),ProgrammShader(0),loaded(false){}
 
-    shader(std::string VertexShaderCode, std::string FragmentShaderCode):VertexShader(0),FragmentShader(0),ProgrammShader(0),loaded(true){
+    shader(std::string VertexShaderCode, std::string FragmentShaderCode):VertexShader(0),FragmentShader(0),ProgrammShader(0),loaded(true),mvp{1}{
         // Create the shaders
         VertexShader = glCreateShader(GL_VERTEX_SHADER);
         FragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -57,7 +60,7 @@ struct shader {
         glAttachShader(ProgrammShader, FragmentShader);
 
 
-        glBindAttribLocation(ProgrammShader, 1, "in_pos");//Attribut Nummer 1 soll in in_pos im Vertex Shader zur Verfügung stehen
+        glBindAttribLocation(ProgrammShader, 1, "in_pos");//Attribut Nummer 1 soll in in_pos im Vertex Shader zur Verfï¿½gung stehen
         glBindFragDataLocation(ProgrammShader, 0, "out_color");//out_color ist Farbe 0 (die in dem Framebuffer geschrieben werden)
 
 
@@ -71,8 +74,15 @@ struct shader {
         fprintf(stdout, "%s\n", &ProgramErrorMessage[0]);
     }
 
+    void reloadMVP() const {
+        glUseProgram(ProgrammShader);
+        GLint MatrixID = glGetUniformLocation(ProgrammShader, "MVP");
+        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
+    }
+
     void loadShader() const {
         glUseProgram(ProgrammShader);
+        reloadMVP();
     }
 };
 

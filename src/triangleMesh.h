@@ -21,26 +21,26 @@ private:
 
     GLuint elementbuffer;
 
-    static shader myshader;
-    static shader lineShader;
-
     long width;
+
     long height;
-
-
     std::vector<glm::vec2> P;
+
+
     std::vector<unsigned int> indexList;
-
-
     std::list<unsigned int> E; //List of ears
+
+
     std::vector<unsigned int> R; //List of reflex verts
     std::vector<unsigned int> C; //List of convex verts
 public:
+    static shader myshader;
+    static shader lineShader;
     triangleMesh(const std::vector<glm::vec2>& posin, long width, long height);
     triangleMesh(const std::vector<glm::ivec2>& posin, long width, long height);
 
     void Render();
-    void Step();
+    bool Step();
 private:
     void initGeom();
     void initShader();

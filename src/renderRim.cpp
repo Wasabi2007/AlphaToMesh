@@ -13,7 +13,7 @@ renderRim::renderRim(const std::vector<glm::ivec2>& posin, long width, long heig
         {
 
     for(auto& p : posin) {
-        pos.emplace_back((float(p.x)-width*0.5f)/float(width)*2, (float(p.y)-height*0.5f)/float(height)*2,0.0f);
+        pos.emplace_back(float(p.x), float(p.y),0.0f);
     }
 
     initGeom();
@@ -68,7 +68,7 @@ void renderRim::initGeom() {
 
 void renderRim::initShader() {
     if(!myshader.loaded){
-        myshader = shader{"#version 330\nin vec4 in_pos;\nvoid main(){\ngl_Position=in_pos;\n}\n",
+        myshader = shader{"#version 330\nin vec4 in_pos;\nuniform mat4 MVP;\nvoid main(){\ngl_Position=MVP*in_pos;\n}\n",
                   "#version 330\nout vec4 out_color;\nvoid main(){\nout_color=vec4(0.9,0.2,0.2,1);\n}\n"};
     }
 }
