@@ -27,6 +27,7 @@ private:
     vector<triangleMesh> meshToRender;
 
     string filename;
+    string status;
 
     static bool mvpreload;
 
@@ -52,6 +53,8 @@ public:
     void WindowSize();
 
     void initTW();
+
+    void Save();
 private:
 
     void init(Rim r);
@@ -71,6 +74,7 @@ private:
     friend void TW_CALL initRims(void *data);
 
     friend void TW_CALL loadImage(void *data);
+    friend void TW_CALL doSave(void *data);
 
     friend void WindowSizeCB(GLFWwindow *_window, int width, int height);
     friend void WindowSizeCBMain(GLFWwindow *_window, int width, int height);

@@ -54,7 +54,7 @@ struct shader {
         fprintf(stdout, "%s\n", &FragmentShaderErrorMessage[0]);
 
         // Link the program
-        fprintf(stdout, "Linking program\n");
+        //fprintf(stdout, "Linking program\n");
         ProgrammShader = glCreateProgram();
         glAttachShader(ProgrammShader, VertexShader);
         glAttachShader(ProgrammShader, FragmentShader);

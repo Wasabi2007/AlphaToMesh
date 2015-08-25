@@ -41,6 +41,8 @@ public:
 
     void Render();
     bool Step();
+
+    friend std::ostream& operator<<(std::ostream& out, const triangleMesh& obj);
 private:
     void initGeom();
     void initShader();

@@ -17,6 +17,8 @@ private:
     GLuint VertexArrayID;
     GLuint vertexbuffer;
 
+    bool renderVerts;
+
 public:
 
     static shader myshader;
@@ -24,6 +26,16 @@ public:
     renderRim(const std::vector<glm::ivec2>& posin, long width, long height);
 
     void Render();
+
+
+    bool isRenderVerts() const {
+        return renderVerts;
+    }
+
+    void setRenderVerts(bool renderVerts) {
+        renderRim::renderVerts = renderVerts;
+    }
+
 private:
     void initGeom();
     void initShader();

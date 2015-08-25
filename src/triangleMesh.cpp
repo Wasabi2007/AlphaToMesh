@@ -316,3 +316,26 @@ bool triangleMesh::Step() {
 
     return !E.empty();
 }
+
+
+std::ostream& operator<<(std::ostream& out, const triangleMesh& obj) {
+    out << "o \"" << &obj << "\"" << endl;
+
+    for(auto& vert : obj.pos){
+        out << "v " << vert.x << " "<< vert.y << " "<< vert.z << endl;
+    }
+    out << endl;
+    for(auto& vert : obj.pos){
+        out << "vt " << vert.x/float(obj.width) << " "<< vert.y/float(obj.height) << endl;
+    }
+
+    out << endl;
+
+    //std::cout << obj.triangleIndexes.size() << std::endl;
+
+    for(size_t index = 0; index < obj.triangleIndexes.size();index+=3){
+        out << "f " << obj.triangleIndexes[index]+1 << "/" << obj.triangleIndexes[index]+1  << " " << obj.triangleIndexes[index+1]+1  << "/" << obj.triangleIndexes[index+1]+1 << " "<< obj.triangleIndexes[index+2]+1  << "/" << obj.triangleIndexes[index+2]+1 << endl;
+    }
+
+    return out;
+}

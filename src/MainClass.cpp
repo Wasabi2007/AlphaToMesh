@@ -4,6 +4,7 @@
 
 #include <gtc/matrix_transform.hpp>
 #include <gtx/string_cast.hpp>
+#include <fstream>
 #include "MainClass.hpp"
 
 bool MainClass::mvpreload = false;
@@ -13,8 +14,11 @@ int MainClass::height = 600;
 void TW_CALL initRims(void *data) {
     MainClass *aClass = (MainClass *) data;
 
+    aClass->canStep = true;
     Rim r{aClass->alpha_limit, aClass->img.get(), aClass->errorMarginDegree};
+    aClass->status = "Finde Rims";
     aClass->init(r);
+    aClass->status = "Found Rims";
     aClass->WindowSize();
 }
 
@@ -24,6 +28,7 @@ void TW_CALL loadImage(void *data) {
     aClass->renderImage1 = std::make_unique<renderImage>(*aClass->img);
     aClass->rimsToRender.clear();
     aClass->meshToRender.clear();
+    aClass->status = "Image Loaded";
     aClass->WindowSize();
 }
 
@@ -38,6 +43,11 @@ void TW_CALL doAutoStep(void *data) {
     aClass->autoStep = !aClass->autoStep;
 }
 
+
+void TW_CALL doSave(void *data) {
+    MainClass *aClass = (MainClass *) data;
+    aClass->Save();
+}
 
 void WindowSizeCB(GLFWwindow *_window, int width, int height) {
     //glViewport(0, 0, width, height);
@@ -77,14 +87,20 @@ void MainClass::initTW(){
     TwWindowSize(width, height);
 
     animationBar = TwNewBar("PlayControlle");
+    TwDefine(" PlayControlle position='0 0' ");
+    TwDefine(" PlayControlle size='500 300' ");
     TwAddButton(animationBar,"Step",doStep,this," label='Step' ");
     TwAddButton(animationBar,"AutoStep",doAutoStep,this," label='Auto Step' ");
     TwAddVarRW(animationBar, "speed", TW_TYPE_FLOAT, &stepTime,
                " label='Step speed' min=0 max=10 step=0.1");
 
+    TwAddVarRO(animationBar,"Process",TW_TYPE_STDSTRING,&this->status,"");
+
+
 
     allgoBar = TwNewBar("AlgoControlle");
-
+    TwDefine(" AlgoControlle position='900 0' ");
+    TwDefine(" AlgoControlle size='500 400' ");
     TwCopyStdStringToClientFunc([](std::string& destinationClientString, const std::string& sourceLibraryString)
     {
         // Copy the content of souceString handled by the AntTweakBar library to destinationClientString handled by your application
@@ -98,6 +114,7 @@ void MainClass::initTW(){
     TwAddVarRW(allgoBar,"Simplification",TW_TYPE_FLOAT, &errorMarginDegree," label='Simplification' min=0 step=0.1");
 
     TwAddButton(allgoBar,"Find Rims",initRims,this," label='Find Rims' ");
+    TwAddButton(allgoBar,"Save Data",doSave,this," label='Save Mesh' ");
 
     glfwSetFramebufferSizeCallback(window,WindowSizeCB);
 }
@@ -129,6 +146,9 @@ void MainClass::init(Rim r) {
         meshToRender.emplace_back(rim, long(img->width), long(img->height));
     }
 
+    for (auto &rim : rimsToRender) {
+        rim.setRenderVerts(true);
+    }
     //glEnable(GL_ALPHA_TEST);
 }
 
@@ -146,27 +166,43 @@ void MainClass::mainLoop(float dt) {
     if(renderImage1)
         renderImage1->Render();
 
-    for (auto &r : meshToRender) {
+    for (auto &r : rimsToRender) {
         r.Render();
     }
 
-    for (auto &r : rimsToRender) {
+    for (auto &r : meshToRender) {
         r.Render();
     }
 
     if (stepp) {
         stepp = false;
+        canStep = false;
         for (auto &r : meshToRender) {
-            canStep = r.Step();
+            canStep = canStep || r.Step();
+        }
+
+        if(canStep) {
+            status = "Triangolation In progress";
+        } else{
+            status = "Finished";
         }
     }
 
     if(autoStep && timeCount >= stepTime){
         timeCount = 0.f;
+        canStep = false;
         for (auto &r : meshToRender) {
-            canStep = r.Step();
+            canStep = canStep || r.Step();
+        }
+
+        if(canStep) {
+            status = "Triangolation In progress";
+        } else{
+            status = "Finished";
         }
     }
+
+
     timeCount += dt;
     //cout << "timeCount: " << timeCount << endl;
 }
@@ -197,4 +233,13 @@ void MainClass::WindowSize() {
 
     // Send the new window size to AntTweakBar
     //TwWindowSize(width, height);
+}
+
+void MainClass::Save() {
+    ofstream out("mesh.obj", ios::out);
+    for (auto &r : meshToRender) {
+        out << r;
+    }
+    out.flush();
+    out.close();
 }

@@ -9,7 +9,7 @@
 shader renderRim::myshader{};
 
 renderRim::renderRim(const std::vector<glm::ivec2>& posin, long width, long height):
-        VertexArrayID{0},vertexbuffer{0}
+        VertexArrayID{0},vertexbuffer{0},renderVerts{false}
         {
 
     for(auto& p : posin) {
@@ -24,7 +24,7 @@ renderRim::renderRim(const std::vector<glm::vec2>& posin, long width, long heigh
         VertexArrayID{0},vertexbuffer{0}{
 
     for(auto& p : posin) {
-        pos.emplace_back((p.x-width*0.5f)/width*2, (p.y-height*0.5f)/height*2,0.0f);
+        pos.emplace_back(p.x, p.y,0.0f);
     }
 
     initGeom();
@@ -36,6 +36,11 @@ void renderRim::Render() {
     //glLineWidth(50.f);
     myshader.loadShader();
     glDrawArrays(GL_LINE_LOOP,0, GLsizei( pos.size()));
+
+    if(renderVerts) {
+        glPointSize(10.f);
+        glDrawArrays(GL_POINTS, 0, GLsizei(pos.size()));
+    }
 }
 
 void renderRim::initGeom() {
