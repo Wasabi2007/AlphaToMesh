@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 project(AlphaToMesh)
 
-
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -fno-strict-aliasing -std=c++14")
 
 add_definitions("-DSTACKTRACE" "-DGLEW_STATIC")
 #include_directories(Libs/MinGW/libpng/header)

@@ -15,17 +15,24 @@ set(ATB_INCLUDE_DIR include)
 #find_package(GLUT)
 #find_library(GLFW_LIBRARY glfw)
 if(WIN32)
- add_definitions(-D_WIN32)
+    #remove_definitions(-DWIN32)
+ add_definitions(-D_DEBUG -D_WINDOWS -D_WIN32 -D__PLACEMENT_NEW_INLINE -DTW_STATIC)# -D_USRDLL -DTW_EXPORTS)
 endif()
 if(UNIX)
- add_definitions(-D_UNIX)
+ add_definitions(-D_UNIX -D__PLACEMENT_NEW_INLINE)
 endif()
 
 include_directories( ${ATB_INCLUDE_DIR}
                      ${OPENGL_INCLUDE_DIR}
                      ${GLFW_INCLUDE_DIR})
 
-set( SOURCES src/LoadOGL.cpp
+set( SOURCES src/res/TwXCursors.h
+             include/AntTweakBar.h
+             src/AntPerfTimer.h
+             src/resource.h
+             src/MiniGLFW3.h
+             src/TwGraph.h
+             src/LoadOGL.cpp
              src/LoadOGLCore.cpp
              src/TwColors.cpp
              src/TwMgr.cpp
@@ -43,6 +50,10 @@ set( SOURCES src/LoadOGL.cpp
              #src/TwEventSDL13.c
              )
 
+
+if(UNIX)
+    set(SOURCES ${SOURCES} src/TwEventX11.c)
+endif()
 
 add_library(AntTweakBar STATIC ${SOURCES})
 
