@@ -3,13 +3,14 @@ project(AlphaToMesh)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-add_definitions("-DSTACKTRACE" "-DGLEW_STATIC")
+add_definitions(-DSTACKTRACE -DGLEW_STATIC -DSTD_NO_MAKE_UNIQUE)
 #include_directories(Libs/MinGW/libpng/header)
 link_directories(Libs/MinGW/dlls)
 
 
 #file(COPY Libs/MinGW/dlls/ DESTINATION .)
 file(COPY data/ DESTINATION .)
+file(COPY kiui/data DESTINATION .)
 
 add_subdirectory(glm)
 include_directories(glm)
@@ -18,10 +19,10 @@ add_subdirectory(glfw)
 set(GLFW_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
 add_subdirectory(lodepng)
 #add_subdirectory(AntTweakBar)
-add_subdirectory(kiui)
+add_subdirectory(nanogui)
 include_directories(lodepng)
 include_directories(${GLFW_INCLUDE_DIR})
-include_directories(kiui/src)
+include_directories(nanogui/include)
 #include_directories(AntTweakBar/include)
 
 
@@ -37,7 +38,7 @@ else(WIN32)
     set(libs X11 Xxf86vm Xrandr pthread Xi Xinerama Xcursor)
 endif(WIN32)
 
-set(libs kiui ${libs} glm glfw GLEW_static)
+set(libs nanogui ${libs} glm glfw GLEW_static)
 
 
 if(WIN32)

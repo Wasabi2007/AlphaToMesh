@@ -49,7 +49,7 @@ void TW_CALL doSave(void *data) {
     aClass->Save();
 }*/
 
-void WindowSizeCB(GLFWwindow *_window, int width, int height) {
+/*void WindowSizeCB(GLFWwindow *_window, int width, int height) {
     //glViewport(0, 0, width, height);
     //std::cout << "Callback?" << std::endl;
 
@@ -59,7 +59,7 @@ void WindowSizeCB(GLFWwindow *_window, int width, int height) {
 
     // Send the new window size to AntTweakBar
     //TwWindowSize(width, height);
-}
+}*/
 
 MainClass::MainClass(const string &filename,float alpha_limit, float errorMarginDegree) : alpha_limit(alpha_limit),
                                                                                 errorMarginDegree(
@@ -75,11 +75,11 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
 }
 
 void MainClass::initTW(){
-    auto window = glfwGetCurrentContext();
+    //auto window = glfwGetCurrentContext();
     int width = 0;
     int height = 0;
 
-    glfwGetFramebufferSize(window,&width,&height);
+    //glfwGetFramebufferSize(window,&width,&height);
 
 
     /*TwDefine(" GLOBAL fontscaling=3 ");
@@ -116,7 +116,7 @@ void MainClass::initTW(){
     TwAddButton(allgoBar,"Find Rims",initRims,this," label='Find Rims' ");
     TwAddButton(allgoBar,"Save Data",doSave,this," label='Save Mesh' ");
 */
-    glfwSetFramebufferSizeCallback(window,WindowSizeCB);
+    //glfwSetFramebufferSizeCallback(window,WindowSizeCB);
 }
 
 void MainClass::init(Rim r) {

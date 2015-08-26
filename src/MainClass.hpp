@@ -13,7 +13,7 @@
 #include "renderRim.h"
 #include "triangleMesh.h"
 #include "Rim.h"
-#include "../glfw/include/GLFW/glfw3.h"
+//#include "../glfw/include/GLFW/glfw3.h"
 
 class MainClass {
 private:
@@ -59,13 +59,13 @@ private:
 
     void init(Rim r);
 
-    void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    /*void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
         if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && mods != GLFW_MOD_CONTROL)
             stepp = true;
 
         if (key == GLFW_KEY_SPACE && mods == GLFW_MOD_CONTROL)
             stepp = true;
-    }
+    }*/
 
     //friend void TW_CALL doStep(void *data);
 
@@ -76,8 +76,8 @@ private:
     //friend void TW_CALL loadImage(void *data);
     //friend void TW_CALL doSave(void *data);
 
-    friend void WindowSizeCB(GLFWwindow *_window, int width, int height);
-    friend void WindowSizeCBMain(GLFWwindow *_window, int width, int height);
+    //friend void WindowSizeCB(GLFWwindow *_window, int width, int height);
+    //friend void WindowSizeCBMain(GLFWwindow *_window, int width, int height);
 };
 
 #endif //ALPHATOMESH_MAINCLASS_HPP

@@ -31,7 +31,19 @@
 //#include <AntTweakBar.h>
 #include <gtx/string_cast.hpp>
 
-void WindowSizeCBMain(GLFWwindow *_window, int width, int height) {
+//#include <Ui/mkUiConfig.h>
+//#include <Ui/mkUiTypes.h>
+
+//#include <Ui/mkUi.h>
+
+//#include <Ui/Nano/mkGlWindow.h>
+
+
+//#ifndef KIUI_EXAMPLE_RESSOURCE_PATH
+//    #define KIUI_EXAMPLE_RESSOURCE_PATH "data/"
+//#endif
+
+/*void WindowSizeCBMain(GLFWwindow *_window, int width, int height) {
     glViewport(0, 0, width, height);
     //std::cout << "Callback?" << std::endl;
 
@@ -41,7 +53,7 @@ void WindowSizeCBMain(GLFWwindow *_window, int width, int height) {
 
     // Send the new window size to AntTweakBar
     //TwWindowSize(width, height);
-}
+}*/
 
 
 int main(int argc, char *argv[]) {
@@ -68,25 +80,29 @@ int main(int argc, char *argv[]) {
         errorMarginDegree = stof(argv[3]);
     }
 
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
     //glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    const auto width = 800*2;
-    const auto height = 600*2;
-    GLFWwindow *window = glfwCreateWindow(width, height, "AlphaToMesh", nullptr, nullptr); // Windowed
+    const auto width = 800 * 2;
+    const auto height = 600 * 2;
+    //GLFWwindow *window = glfwCreateWindow(width, height, "AlphaToMesh", nullptr, nullptr); // Windowed
     //GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL", glfwGetPrimaryMonitor(), nullptr); // Fullscreen
-    glfwMakeContextCurrent(window);
+    //glfwMakeContextCurrent(window);
 
     //glfwSetKeyCallback(window, key_callback);
 
-    glewExperimental = GL_TRUE;
-    glewInit();
+    //glewExperimental = GL_TRUE;
+    //glewInit();
 
+    /*mk::GlWindow glWindow{width,height,"AlphaToMesh",KIUI_EXAMPLE_RESSOURCE_PATH};
+    glWindow.initContext();
+
+    mk::UiWindow& uiwindow = glWindow.uiWindow();
+    uiwindow.init();
+
+    mk::Form& root = uiwindow.rootForm();
+
+
+    createUiTest(root);*/
 
     // after GLFW initialization
     // directly redirect GLFW events to AntTweakBar
@@ -102,7 +118,7 @@ int main(int argc, char *argv[]) {
     // send window size events to AntTweakBar
     //glfwSetWindowSizeCallback(MyResize); // and call TwWindowSize in the function MyResize
 
-
+    //mk::GlWindow win{};
 
 
     glEnable(GL_BLEND);
@@ -111,31 +127,32 @@ int main(int argc, char *argv[]) {
     float lineWidth[2];
     glGetFloatv(GL_LINE_WIDTH_RANGE, lineWidth);
 
-    MainClass mainClass{filename,alpha_limit,errorMarginDegree};
-    mainClass.initTW();
+    //MainClass mainClass{filename, alpha_limit, errorMarginDegree};
+    //mainClass.initTW();
 
-    WindowSizeCBMain(nullptr, width, height);
+    //glWindow.uiWindow()
+
+    //WindowSizeCBMain(nullptr, width, height);
 
     //cout << lineWidth[0] << " " << lineWidth[1] << endl;
+    bool running = true;
 
-    while (!glfwWindowShouldClose(window)) {
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-
+    while (running) {
         static auto time = std::chrono::high_resolution_clock::now();
         static float dt = 0.f;
 
         auto t2 = std::chrono::high_resolution_clock::now();
-        dt = float(std::chrono::duration_cast<std::chrono::milliseconds>(t2-time).count())/1000;
-        mainClass.mainLoop(dt);
+        dt = float(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - time).count()) / 1000;
+//        mainClass.mainLoop(dt);
+//        running = glWindow.renderFrame();
         //TwDraw();
         time = t2;
 
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            glfwSetWindowShouldClose(window, GL_TRUE);
+        //if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        //    glfwSetWindowShouldClose(window, GL_TRUE);
     }
     //TwTerminate();
-    glfwTerminate();
+    //glfwTerminate();
 
     return 0;
 }
