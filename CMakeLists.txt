@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 project(AlphaToMesh)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -ansi -fno-strict-aliasing -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_definitions("-DSTACKTRACE" "-DGLEW_STATIC")
 #include_directories(Libs/MinGW/libpng/header)
@@ -15,10 +15,14 @@ add_subdirectory(glm)
 include_directories(glm)
 add_subdirectory(glew)
 add_subdirectory(glfw)
+set(GLFW_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
 add_subdirectory(lodepng)
-add_subdirectory(AntTweakBar)
+#add_subdirectory(AntTweakBar)
+add_subdirectory(kiui)
 include_directories(lodepng)
-include_directories(AntTweakBar/include)
+include_directories(${GLFW_INCLUDE_DIR})
+include_directories(kiui/src)
+#include_directories(AntTweakBar/include)
 
 
 
@@ -33,7 +37,7 @@ else(WIN32)
     set(libs X11 Xxf86vm Xrandr pthread Xi Xinerama Xcursor)
 endif(WIN32)
 
-set(libs AntTweakBar ${libs} glm glfw GLEW_static)
+set(libs kiui ${libs} glm glfw GLEW_static)
 
 
 if(WIN32)

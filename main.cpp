@@ -28,7 +28,7 @@
 #include "src/Rim.h"
 #include "src/MainClass.hpp"
 
-#include <AntTweakBar.h>
+//#include <AntTweakBar.h>
 #include <gtx/string_cast.hpp>
 
 void WindowSizeCBMain(GLFWwindow *_window, int width, int height) {
@@ -40,7 +40,7 @@ void WindowSizeCBMain(GLFWwindow *_window, int width, int height) {
     //MainClass::mvpreload = true;
 
     // Send the new window size to AntTweakBar
-    TwWindowSize(width, height);
+    //TwWindowSize(width, height);
 }
 
 
@@ -90,11 +90,11 @@ int main(int argc, char *argv[]) {
 
     // after GLFW initialization
     // directly redirect GLFW events to AntTweakBar
-    glfwSetMouseButtonCallback(window,(GLFWmousebuttonfun)TwEventMouseButtonGLFW3);
-    glfwSetCursorPosCallback(window,(GLFWcursorposfun)TwEventCursorPosGLFW3);
-    glfwSetScrollCallback(window,(GLFWscrollfun)TwEventScrollGLFW3);
-    glfwSetKeyCallback(window,(GLFWkeyfun)TwEventKeyGLFW3);
-    glfwSetCharCallback(window,(GLFWcharfun)TwEventCharModsGLFW3);
+    //glfwSetMouseButtonCallback(window,(GLFWmousebuttonfun)TwEventMouseButtonGLFW3);
+    //glfwSetCursorPosCallback(window,(GLFWcursorposfun)TwEventCursorPosGLFW3);
+    //glfwSetScrollCallback(window,(GLFWscrollfun)TwEventScrollGLFW3);
+    //glfwSetKeyCallback(window,(GLFWkeyfun)TwEventKeyGLFW3);
+    //glfwSetCharCallback(window,(GLFWcharfun)TwEventCharModsGLFW3);
 
     //glfwSetWindowSizeCallback(window,WindowSizeCB);
     //cout << TwGetLastError() << endl;
@@ -128,13 +128,13 @@ int main(int argc, char *argv[]) {
         auto t2 = std::chrono::high_resolution_clock::now();
         dt = float(std::chrono::duration_cast<std::chrono::milliseconds>(t2-time).count())/1000;
         mainClass.mainLoop(dt);
-        TwDraw();
+        //TwDraw();
         time = t2;
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, GL_TRUE);
     }
-    TwTerminate();
+    //TwTerminate();
     glfwTerminate();
 
     return 0;

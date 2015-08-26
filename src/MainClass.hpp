@@ -7,7 +7,7 @@
 
 
 #include <memory>
-#include <AntTweakBar.h>
+//#include <AntTweakBar.h>
 #include "imageStruct.hpp"
 #include "renderImage.h"
 #include "renderRim.h"
@@ -20,8 +20,8 @@ private:
     std::unique_ptr<imageStruct> img;
     std::unique_ptr<renderImage> renderImage1;
 
-    TwBar *animationBar;
-    TwBar *allgoBar;
+   // TwBar *animationBar;
+   // TwBar *allgoBar;
 
     vector<renderRim> rimsToRender;
     vector<triangleMesh> meshToRender;
@@ -67,14 +67,14 @@ private:
             stepp = true;
     }
 
-    friend void TW_CALL doStep(void *data);
+    //friend void TW_CALL doStep(void *data);
 
-    friend void TW_CALL doAutoStep(void *data);
+    //friend void TW_CALL doAutoStep(void *data);
 
-    friend void TW_CALL initRims(void *data);
+    //friend void TW_CALL initRims(void *data);
 
-    friend void TW_CALL loadImage(void *data);
-    friend void TW_CALL doSave(void *data);
+    //friend void TW_CALL loadImage(void *data);
+    //friend void TW_CALL doSave(void *data);
 
     friend void WindowSizeCB(GLFWwindow *_window, int width, int height);
     friend void WindowSizeCBMain(GLFWwindow *_window, int width, int height);

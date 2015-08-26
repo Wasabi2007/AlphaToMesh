@@ -11,7 +11,7 @@ bool MainClass::mvpreload = false;
 int MainClass::width = 800;
 int MainClass::height = 600;
 
-void TW_CALL initRims(void *data) {
+/*void TW_CALL initRims(void *data) {
     MainClass *aClass = (MainClass *) data;
 
     aClass->canStep = true;
@@ -47,7 +47,7 @@ void TW_CALL doAutoStep(void *data) {
 void TW_CALL doSave(void *data) {
     MainClass *aClass = (MainClass *) data;
     aClass->Save();
-}
+}*/
 
 void WindowSizeCB(GLFWwindow *_window, int width, int height) {
     //glViewport(0, 0, width, height);
@@ -58,7 +58,7 @@ void WindowSizeCB(GLFWwindow *_window, int width, int height) {
     MainClass::mvpreload = true;
 
     // Send the new window size to AntTweakBar
-    TwWindowSize(width, height);
+    //TwWindowSize(width, height);
 }
 
 MainClass::MainClass(const string &filename,float alpha_limit, float errorMarginDegree) : alpha_limit(alpha_limit),
@@ -82,7 +82,7 @@ void MainClass::initTW(){
     glfwGetFramebufferSize(window,&width,&height);
 
 
-    TwDefine(" GLOBAL fontscaling=3 ");
+    /*TwDefine(" GLOBAL fontscaling=3 ");
     TwInit(TW_OPENGL_CORE, NULL);
     TwWindowSize(width, height);
 
@@ -115,7 +115,7 @@ void MainClass::initTW(){
 
     TwAddButton(allgoBar,"Find Rims",initRims,this," label='Find Rims' ");
     TwAddButton(allgoBar,"Save Data",doSave,this," label='Save Mesh' ");
-
+*/
     glfwSetFramebufferSizeCallback(window,WindowSizeCB);
 }
 
