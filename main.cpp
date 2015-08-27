@@ -107,7 +107,17 @@ int main(int argc, char *argv[]) {
     }
 
     try {
+        //glewExperimental = GL_TRUE;
+        //glewInit();
         nanogui::init();
+
+        /*glewExperimental = GL_TRUE;
+        if(glewInit() != GLEW_OK) {
+            printf("Could not init glew.\n");
+            return -1;
+        }*/
+        // GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.
+        glGetError();
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

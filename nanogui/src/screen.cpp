@@ -13,9 +13,9 @@ NANOGUI_NAMESPACE_BEGIN
 
 std::map<GLFWwindow *, Screen *> __nanogui_screens;
 
-#if defined(WIN32)
+//#if defined(WIN32)
 static bool glewInitialized = false;
-#endif
+//#endif
 
 Screen::Screen()
   : Widget(nullptr),mIsMainWindow(false),mCursor(nullptr),mCursorType(Cursor::None){
@@ -55,7 +55,7 @@ Screen::Screen(const Vector2i &size, const std::string &caption,
 
     glfwMakeContextCurrent(mGLFWWindow);
 
-#if defined(WIN32)
+//#if defined(WIN32)
     if (!glewInitialized) {
         glewExperimental = GL_TRUE;
         glewInitialized = true;
@@ -63,7 +63,7 @@ Screen::Screen(const Vector2i &size, const std::string &caption,
             throw std::runtime_error("Could not initialize GLEW!");
         glGetError(); // pull and safely ignore unhandled errors like GL_INVALID_ENUM
     }
-#endif
+//#endif
 
     glfwGetFramebufferSize(mGLFWWindow, &mFBSize[0], &mFBSize[1]);
     glViewport(0, 0, mFBSize[0], mFBSize[1]);

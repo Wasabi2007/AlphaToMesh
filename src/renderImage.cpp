@@ -32,6 +32,7 @@ void renderImage::Render() {
 
 void renderImage::initGeom() {
     glGenVertexArrays(1, &VertexArrayID);
+    //cout << "gogo" << endl;
     glBindVertexArray(VertexArrayID);
 
 

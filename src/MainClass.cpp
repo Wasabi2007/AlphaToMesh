@@ -306,23 +306,128 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
             popupBtnRef.setPushed(false);
         }
     });*/
-    Window *window = new Window(this, "Button demo");
-    window->setPosition(Vector2i(15, 15));
+    Window *window = new Window(this, "Algo Controlle");
+    window->setPosition(Vector2i(800, 15));
     window->setLayout(new GroupLayout());
     Button* b = new Button(window, "Open");
     b->setCallback([&] {
         this->filename = file_dialog(
                 { {"png", "Portable Network Graphics"} , {"", "All Data"} }, false);
 
+        //cout << this->filename << endl;
 
-        this->img = std::unique_ptr<imageStruct>(imageStruct::load(filename.c_str()));
+        this->img = std::unique_ptr<imageStruct>(imageStruct::load(this->filename.c_str()));
         assert(this->img);
-
+        
         this->renderImage1 = make_unique<renderImage>(this->img.get());
         this->rimsToRender.clear();
         this->meshToRender.clear();
         this->status = "Image Loaded";
         this->WindowSize();
+    });
+
+    Label* label = new Label(window,"Alpha Limit","sans-bold");
+    Slider *slider = new Slider(window);
+    slider->setValue(0.5f);
+    //slider->setFixedWidth(80);
+
+    TextBox *textBox = new TextBox(window);
+    textBox->setFixedSize(Vector2i(60,25));
+    textBox->setFontSize(20);
+    textBox->setValue("0.50");
+    textBox->setFormat("[-]?[0-9]*\\.?[0-9]+");
+    textBox->setEditable(false);
+
+    slider->setCallback([this,textBox](float v){
+        this->alpha_limit = v;
+        auto s = std::to_string(v);
+        auto index = s.find('.',0);
+        textBox->setValue(s.substr(0,index+3));
+    });
+
+    label = new Label(window,"Simplification","sans-bold");
+    slider = new Slider(window);
+
+
+    textBox = new TextBox(window);
+    textBox->setEditable(false);
+    textBox->setFixedSize(Vector2i(60,25));
+    textBox->setFontSize(20);
+    textBox->setValue("0.00");
+
+
+
+    slider->setValue(0.0f);
+    //slider->setFixedWidth(80);
+    slider->setCallback([this,textBox](float v){
+        this->errorMarginDegree = v*100.f;
+        auto s = std::to_string(this->errorMarginDegree);
+        auto index = s.find('.',0);
+        textBox->setValue(s.substr(0,index+3));
+        //textBox->setValue(std::to_string(int(this->errorMarginDegree)));
+
+    });
+
+    b = new Button(window, "Find Rims");
+    b->setCallback([&] {
+        this->canStep = true;
+        Rim r{this->alpha_limit, this->img.get(), this->errorMarginDegree};
+        this->status = "Finde Rims";
+        this->init(r);
+        this->status = "Found Rims";
+        this->WindowSize();
+    });
+
+
+    b = new Button(window, "Save");
+    b->setCallback([&] {
+        auto file = file_dialog( { {"obj", "Wavefront Object File"} }, true);
+
+        ofstream out(file, ios::out);
+        for (auto &r : meshToRender) {
+            out << r;
+        }
+        out.flush();
+        out.close();
+    });
+
+    window = new Window(this, "Play Controlle");
+    window->setPosition(Vector2i(15, 15));
+    window->setLayout(new GroupLayout());
+
+    label = new Label(window,"Play Speed in S","sans-bold");
+    slider = new Slider(window);
+
+
+    textBox = new TextBox(window);
+    textBox->setEditable(false);
+    textBox->setFixedSize(Vector2i(60,25));
+    textBox->setFontSize(20);
+    textBox->setValue("0.10");
+
+
+
+    slider->setValue(0.01f);
+    //slider->setFixedWidth(80);
+    slider->setCallback([this,textBox](float v){
+        this->stepTime = v*10.f;
+        auto s = std::to_string(this->stepTime);
+        auto index = s.find('.',0);
+        textBox->setValue(s.substr(0,index+3));
+        //textBox->setValue(std::to_string(int(this->errorMarginDegree)));
+
+    });
+
+    b = new Button(window, "Stepp");
+    b->setCallback([&] {
+        this->stepp = true;
+
+    });
+
+    b = new Button(window, "Play");
+    b->setButtonFlags(Button::ToggleButton);
+    b->setCallback([&] {
+        this->autoStep = true;
     });
 
     performLayout(mNVGContext);
