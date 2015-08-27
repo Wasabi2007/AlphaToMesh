@@ -621,6 +621,7 @@ void MainClass::mainLoop(float dt) {
 
 void MainClass::WindowSize() {
     //glViewport(0, 0, MainClass::width, MainClass::height);
+    if(!img)    return;
 
     float wsize = float(img->width)/float(MainClass::width);
     float hsize = float(img->height)/float(MainClass::height);
