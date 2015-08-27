@@ -11,7 +11,7 @@
 
 class renderImage {
 private:
-    imageStruct img;
+    imageStruct* img;
     GLuint VertexArrayID;
     GLuint vertexbuffer;
     GLuint elementbuffer;
@@ -25,7 +25,7 @@ private:
     mat4 MVP;
 public:
     renderImage(const char* filename);
-    renderImage(imageStruct img);
+    renderImage(imageStruct* img);
     ~renderImage();
 
     void Render();

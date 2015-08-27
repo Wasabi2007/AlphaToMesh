@@ -20,6 +20,32 @@
 
 #include "util/stacktrace.hpp"
 
+#include <nanogui/screen.h>
+#include <nanogui/window.h>
+#include <nanogui/layout.h>
+#include <nanogui/label.h>
+#include <nanogui/checkbox.h>
+#include <nanogui/button.h>
+#include <nanogui/toolbutton.h>
+#include <nanogui/popupbutton.h>
+#include <nanogui/combobox.h>
+#include <nanogui/progressbar.h>
+#include <nanogui/entypo.h>
+#include <nanogui/messagedialog.h>
+#include <nanogui/textbox.h>
+#include <nanogui/slider.h>
+#include <nanogui/imagepanel.h>
+#include <nanogui/imageview.h>
+#include <nanogui/vscrollpanel.h>
+#include <nanogui/colorwheel.h>
+
+#if defined(WIN32)
+#include <windows.h>
+#endif
+
+#include <nanogui/glutil.h>
+#include <iostream>
+
 #include "src/imageStruct.hpp"
 #include "src/renderImage.h"
 #include "src/renderRim.h"
@@ -80,79 +106,35 @@ int main(int argc, char *argv[]) {
         errorMarginDegree = stof(argv[3]);
     }
 
-    //glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    try {
+        nanogui::init();
 
-    const auto width = 800 * 2;
-    const auto height = 600 * 2;
-    //GLFWwindow *window = glfwCreateWindow(width, height, "AlphaToMesh", nullptr, nullptr); // Windowed
-    //GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL", glfwGetPrimaryMonitor(), nullptr); // Fullscreen
-    //glfwMakeContextCurrent(window);
+        //glEnable(GL_BLEND);
+        //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    //glfwSetKeyCallback(window, key_callback);
+        //float lineWidth[2];
+        //glGetFloatv(GL_LINE_WIDTH_RANGE, lineWidth);
 
-    //glewExperimental = GL_TRUE;
-    //glewInit();
+        MainClass *mainClass = new MainClass(filename, alpha_limit, errorMarginDegree);
+        //mainClass.initTW();
 
-    /*mk::GlWindow glWindow{width,height,"AlphaToMesh",KIUI_EXAMPLE_RESSOURCE_PATH};
-    glWindow.initContext();
+        mainClass->drawAll();
+        mainClass->setVisible(true);
 
-    mk::UiWindow& uiwindow = glWindow.uiWindow();
-    uiwindow.init();
+        nanogui::mainloop();
 
-    mk::Form& root = uiwindow.rootForm();
-
-
-    createUiTest(root);*/
-
-    // after GLFW initialization
-    // directly redirect GLFW events to AntTweakBar
-    //glfwSetMouseButtonCallback(window,(GLFWmousebuttonfun)TwEventMouseButtonGLFW3);
-    //glfwSetCursorPosCallback(window,(GLFWcursorposfun)TwEventCursorPosGLFW3);
-    //glfwSetScrollCallback(window,(GLFWscrollfun)TwEventScrollGLFW3);
-    //glfwSetKeyCallback(window,(GLFWkeyfun)TwEventKeyGLFW3);
-    //glfwSetCharCallback(window,(GLFWcharfun)TwEventCharModsGLFW3);
-
-    //glfwSetWindowSizeCallback(window,WindowSizeCB);
-    //cout << TwGetLastError() << endl;
-
-    // send window size events to AntTweakBar
-    //glfwSetWindowSizeCallback(MyResize); // and call TwWindowSize in the function MyResize
-
-    //mk::GlWindow win{};
-
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    float lineWidth[2];
-    glGetFloatv(GL_LINE_WIDTH_RANGE, lineWidth);
-
-    //MainClass mainClass{filename, alpha_limit, errorMarginDegree};
-    //mainClass.initTW();
-
-    //glWindow.uiWindow()
-
-    //WindowSizeCBMain(nullptr, width, height);
-
-    //cout << lineWidth[0] << " " << lineWidth[1] << endl;
-    bool running = true;
-
-    while (running) {
-        static auto time = std::chrono::high_resolution_clock::now();
-        static float dt = 0.f;
-
-        auto t2 = std::chrono::high_resolution_clock::now();
-        dt = float(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - time).count()) / 1000;
-//        mainClass.mainLoop(dt);
-//        running = glWindow.renderFrame();
-        //TwDraw();
-        time = t2;
-
-        //if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        //    glfwSetWindowShouldClose(window, GL_TRUE);
+        delete mainClass;
+        nanogui::shutdown();
+    } catch (const std::runtime_error &e) {
+        std::string error_msg = std::string("Caught a fatal error: ") + std::string(e.what());
+#if defined(WIN32)
+        MessageBoxA(nullptr, error_msg.c_str(), NULL, MB_ICONERROR | MB_OK);
+#else
+        std::cerr << error_msg << endl;
+#endif
+        return -1;
     }
-    //TwTerminate();
-    //glfwTerminate();
+
 
     return 0;
 }

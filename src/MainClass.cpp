@@ -5,11 +5,18 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtx/string_cast.hpp>
 #include <fstream>
+#include <chrono>
 #include "MainClass.hpp"
 
 bool MainClass::mvpreload = false;
-int MainClass::width = 800;
-int MainClass::height = 600;
+int MainClass::width = 1024;
+int MainClass::height = 768;
+
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args)
+{
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
 
 /*void TW_CALL initRims(void *data) {
     MainClass *aClass = (MainClass *) data;
@@ -61,7 +68,10 @@ void TW_CALL doSave(void *data) {
     //TwWindowSize(width, height);
 }*/
 
-MainClass::MainClass(const string &filename,float alpha_limit, float errorMarginDegree) : alpha_limit(alpha_limit),
+MainClass::MainClass(const string &filename,float alpha_limit, float errorMarginDegree)
+: nanogui::Screen(Eigen::Vector2i(1024, 768), "Alpha to Mesh"),
+        alpha_limit(alpha_limit),
+
                                                                                 errorMarginDegree(
                                                                                         errorMarginDegree),
                                                                                 filename(filename),
@@ -71,7 +81,293 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
                                                                                           timeCount(0.f),
                                                                                           stepTime(1.f)
 {
+    using namespace nanogui;
 
+    /*Window *window = new Window(this, "Button demo");
+    window->setPosition(Vector2i(15, 15));
+    window->setLayout(new GroupLayout());
+
+    /* No need to store a pointer, the data structure will be automatically
+       freed when the parent window is deleted */
+    /*new Label(window, "Push buttons", "sans-bold");
+
+    Button *b = new Button(window, "Plain button");
+    b->setCallback([] { cout << "pushed!" << endl; });
+    b = new Button(window, "Styled", ENTYPO_ICON_ROCKET);
+    b->setBackgroundColor(Color(0, 0, 255, 60));
+    b->setCallback([] { cout << "pushed!" << endl; });
+
+    new Label(window, "Toggle buttons", "sans-bold");
+    b = new Button(window, "Toggle me");
+    b->setButtonFlags(Button::ToggleButton);
+    b->setChangeCallback([](bool state) { cout << "Toggle button state: " << state << endl; });
+
+    new Label(window, "Radio buttons", "sans-bold");
+    b = new Button(window, "Radio button 1");
+    b->setButtonFlags(Button::RadioButton);
+    b = new Button(window, "Radio button 2");
+    b->setButtonFlags(Button::RadioButton);
+
+    new Label(window, "A tool palette", "sans-bold");
+    Widget *tools = new Widget(window);
+    tools->setLayout(new BoxLayout(BoxLayout::Orientation::Horizontal,BoxLayout::Alignment::Middle,0,6));
+
+    b = new ToolButton(tools, ENTYPO_ICON_CLOUD);
+    b = new ToolButton(tools, ENTYPO_ICON_FF);
+    b = new ToolButton(tools, ENTYPO_ICON_COMPASS);
+    b = new ToolButton(tools, ENTYPO_ICON_INSTALL);
+
+    new Label(window, "Popup buttons", "sans-bold");
+    PopupButton *popupBtn = new PopupButton(window, "Popup", ENTYPO_ICON_EXPORT);
+    Popup *popup = popupBtn->popup();
+    popup->setLayout(new GroupLayout());
+    new Label(popup, "Arbitrary widgets can be placed here");
+    new CheckBox(popup, "A check box");
+    popupBtn = new PopupButton(popup, "Recursive popup", ENTYPO_ICON_FLASH);
+    popup = popupBtn->popup();
+    popup->setLayout(new GroupLayout());
+    new CheckBox(popup, "Another check box");
+
+    window = new Window(this, "Basic widgets");
+    window->setPosition(Vector2i(200, 15));
+    window->setLayout(new GroupLayout());
+
+    new Label(window, "Message dialog", "sans-bold");
+    tools = new Widget(window);
+    tools->setLayout(new BoxLayout(BoxLayout::Orientation::Horizontal, BoxLayout::Alignment::Middle, 0, 6));
+    b = new Button(tools, "Info");
+    b->setCallback([&] {
+        auto dlg = new MessageDialog(this, MessageDialog::Information, "Title", "This is an information message");
+        dlg->setCallback([](int result) { cout << "Dialog result: " << result << endl; });
+    });
+    b = new Button(tools, "Warn");
+    b->setCallback([&] {
+        auto dlg = new MessageDialog(this, MessageDialog::Warning, "Title", "This is a warning message");
+        dlg->setCallback([](int result) { cout << "Dialog result: " << result << endl; });
+    });
+    b = new Button(tools, "Ask");
+    b->setCallback([&] {
+        auto dlg = new MessageDialog(this, MessageDialog::Warning, "Title", "This is a question message", "Yes", "No", true);
+        dlg->setCallback([](int result) { cout << "Dialog result: " << result << endl; });
+    });
+
+    std::vector<std::pair<int, std::string>>
+            icons = loadImageDirectory(mNVGContext, "icons");
+
+    new Label(window, "Image panel & scroll panel", "sans-bold");
+    PopupButton *imagePanelBtn = new PopupButton(window, "Image Panel");
+    imagePanelBtn->setIcon(ENTYPO_ICON_FOLDER);
+    popup = imagePanelBtn->popup();
+    VScrollPanel *vscroll = new VScrollPanel(popup);
+    ImagePanel *imgPanel = new ImagePanel(vscroll);
+    imgPanel->setImageData(icons);
+    popup->setFixedSize(Vector2i(245, 150));
+    new Label(window, "Selected image", "sans-bold");
+    auto img = new ImageView(window);
+    img->setFixedSize(Vector2i(40, 40));
+
+    new Label(window, "File dialog", "sans-bold");
+    tools = new Widget(window);
+    tools->setLayout(new BoxLayout(BoxLayout::Orientation::Horizontal,BoxLayout::Alignment::Middle,0,6));
+    b = new Button(tools, "Open");
+    b->setCallback([&] {
+        cout << "File dialog result: " << file_dialog(
+                { {"png", "Portable Network Graphics"}, {"txt", "Text file"} }, false) << endl;
+    });
+    b = new Button(tools, "Save");
+    b->setCallback([&] {
+        cout << "File dialog result: " << file_dialog(
+                { {"png", "Portable Network Graphics"}, {"txt", "Text file"} }, true) << endl;
+    });
+
+    img->setImage(icons[0].first);
+    imgPanel->setCallback([&, img, imgPanel, imagePanelBtn](int i) {
+        img->setImage(imgPanel->images()[i].first); cout << "Selected item " << i << endl;
+    });
+
+    new Label(window, "Combo box", "sans-bold");
+    new ComboBox(window, { "Combo box item 1", "Combo box item 2", "Combo box item 3"});
+    new Label(window, "Check box", "sans-bold");
+    CheckBox *cb = new CheckBox(window, "Flag 1",
+                                [](bool state) { cout << "Check box 1 state: " << state << endl; }
+    );
+    cb->setChecked(true);
+    new CheckBox(window, "Flag 2",
+                 [](bool state) { cout << "Check box 2 state: " << state << endl; }
+    );
+    new Label(window, "Progress bar", "sans-bold");
+    mProgress = new ProgressBar(window);
+
+    new Label(window, "Slider and text box", "sans-bold");
+
+    Widget *panel = new Widget(window);
+    panel->setLayout(
+            new BoxLayout(BoxLayout::Orientation::Horizontal, BoxLayout::Alignment::Middle, 0, 20));
+
+    Slider *slider = new Slider(panel);
+    slider->setValue(0.5f);
+    slider->setFixedWidth(80);
+
+    TextBox *textBox = new TextBox(panel);
+    textBox->setFixedSize(Vector2i(60,25));
+    textBox->setValue("50");
+    textBox->setUnits("%");
+    textBox->setFontSize(20);
+    slider->setCallback([textBox](float value) {
+        textBox->setValue(std::to_string((int) (value * 100)));
+    });
+    slider->setFinalCallback([&](float value) {
+        cout << "Final slider value: " << (int) (value * 100) << endl;
+    });
+
+    window = new Window(this,"Misc. widgets");
+    window->setPosition(Vector2i(425,15));
+    window->setLayout(new GroupLayout());
+    new Label(window,"Color wheel","sans-bold");
+    new ColorWheel(window);
+
+    window = new Window(this,"Minimalistic Widgets");
+    window->setPosition(Vector2i(600,15));
+    window->setLayout(new BoxLayout(BoxLayout::Orientation::Vertical,BoxLayout::Alignment::Minimum,5,10));
+
+    Widget* gridPanel = new Widget(window);
+    GridLayout* layout = new GridLayout(GridLayout::Orientation::Horizontal,2,0,1);
+    layout->setColAlignment({GridLayout::Alignment::Middle,GridLayout::Alignment::Middle});
+    gridPanel->setLayout(layout);
+
+    for(int i=0;i<10;i++)
+    {
+        new Label(gridPanel,"Attribute","sans-bold");
+
+        textBox = new TextBox(gridPanel);
+        textBox->setEditable(true);
+        textBox->setFixedSize(Vector2i(100,20));
+        textBox->setValue("50");
+        textBox->setUnits("%");
+        textBox->setDefaultValue("0.0");
+        textBox->setFontSize(16);
+        textBox->setFormat("[-]?[0-9]*\\.?[0-9]+");
+    }
+
+    for(int i=0;i<3;i++)
+    {
+        new Label(gridPanel,"Checkboxes","sans-bold");
+
+        cb = new CheckBox(gridPanel,"",[](bool state) {});
+        cb->setFixedSize(Vector2i(18,18));
+        cb->setFontSize(18);
+        cb->setChecked(true);
+    }
+
+    for(int i=0;i<5;i++)
+    {
+        new Label(gridPanel,"Attribute","sans-bold");
+
+        textBox = new TextBox(gridPanel);
+        textBox->setEditable(true);
+        textBox->setFixedSize(Vector2i(100,20));
+        textBox->setValue("50");
+        textBox->setUnits("%");
+        textBox->setDefaultValue("0.0");
+        textBox->setFontSize(16);
+        textBox->setFormat("[-]?[0-9]*\\.?[0-9]+");
+    }
+
+    new Label(gridPanel,"Combobox","sans-bold");
+    ComboBox* cobo = new ComboBox(gridPanel,{"Item 1","Item 2","Item 3"});
+    cobo->setFontSize(16);
+    cobo->setFixedSize(Vector2i(100,20));
+
+    new Label(gridPanel,"Color Button","sans-bold");
+    popupBtn = new PopupButton(gridPanel,"",0);
+    popupBtn->setBackgroundColor(Color(255,120,0,255));
+    popupBtn->setFontSize(16);
+    popupBtn->setFixedSize(Vector2i(100,20));
+    popup = popupBtn->popup();
+    popup->setLayout(new GroupLayout());
+
+    ColorWheel* colorwheel = new ColorWheel(popup);
+    colorwheel->setColor(popupBtn->backgroundColor().block<3,1>(0,0));
+
+    Button* colorBtn = new Button(popup,"Pick");
+    colorBtn->setFixedSize(Vector2i(100,25));
+    Vector3f c = colorwheel->color();
+    colorBtn->setBackgroundColor(Color(c));
+
+    PopupButton& popupBtnRef = *popupBtn;
+    Button& colorBtnRef = *colorBtn;
+    colorwheel->setCallback([&](const Vector3f &value) {
+        colorBtnRef.setBackgroundColor(Color(value));
+    });
+
+    colorBtn->setChangeCallback([&](bool pushed) {
+        if(pushed) {
+            popupBtnRef.setBackgroundColor(colorBtnRef.backgroundColor());
+            popupBtnRef.setPushed(false);
+        }
+    });*/
+    Window *window = new Window(this, "Button demo");
+    window->setPosition(Vector2i(15, 15));
+    window->setLayout(new GroupLayout());
+    Button* b = new Button(window, "Open");
+    b->setCallback([&] {
+        this->filename = file_dialog(
+                { {"png", "Portable Network Graphics"} }, false);
+
+
+        this->img = std::unique_ptr<imageStruct>(imageStruct::load(filename.c_str()));
+        /*this->renderImage1 = make_unique<renderImage>(this->img.get());
+        this->rimsToRender.clear();
+        this->meshToRender.clear();
+        this->status = "Image Loaded";
+        this->WindowSize();*/
+    });
+
+    performLayout(mNVGContext);
+
+    /* All NanoGUI widgets are initialized at this point. Now
+       create an OpenGL shader to draw the main window contents.
+
+       NanoGUI comes with a simple Eigen-based wrapper around OpenGL 3,
+       which eliminates most of the tedious and error-prone shader and
+       buffer object management.
+    */
+
+    mShader.init(
+            /* An identifying name */
+            "a_simple_shader",
+
+            /* Vertex shader */
+            "#version 330\n"
+                    "uniform mat4 modelViewProj;\n"
+                    "in vec3 position;\n"
+                    "void main() {\n"
+                    "    gl_Position = modelViewProj * vec4(position, 1.0);\n"
+                    "}",
+
+            /* Fragment shader */
+            "#version 330\n"
+                    "out vec4 color;\n"
+                    "uniform float intensity;\n"
+                    "void main() {\n"
+                    "    color = vec4(vec3(0.5), 1.0);\n"
+                    "}"
+    );
+
+    MatrixXu indices(3, 2); /* Draw 2 triangles */
+    indices.col(0) << 0, 1, 2;
+    indices.col(1) << 2, 3, 0;
+
+    MatrixXf positions(3, 4);
+    positions.col(0) << -1, -1, 0;
+    positions.col(1) <<  1, -1, 0;
+    positions.col(2) <<  1,  1, 0;
+    positions.col(3) << -1,  1, 0;
+
+    mShader.bind();
+    mShader.uploadIndices(indices);
+    mShader.uploadAttrib("position", positions);
+    //mShader.setUniform("intensity", 0.5f);
 }
 
 void MainClass::initTW(){
@@ -161,7 +457,7 @@ void MainClass::mainLoop(float dt) {
         WindowSize();
     }
 
-    glLineWidth(5.0f);
+    //glLineWidth(5.0f);
     //glPointSize(50.f);
     if(renderImage1)
         renderImage1->Render();
@@ -208,7 +504,7 @@ void MainClass::mainLoop(float dt) {
 }
 
 void MainClass::WindowSize() {
-    glViewport(0, 0, MainClass::width, MainClass::height);
+    //glViewport(0, 0, MainClass::width, MainClass::height);
 
     float wsize = float(img->width)/float(MainClass::width);
     float hsize = float(img->height)/float(MainClass::height);
@@ -235,6 +531,43 @@ void MainClass::WindowSize() {
     //TwWindowSize(width, height);
 }
 
+void MainClass::draw(NVGcontext *ctx) {
+    /* Animate the scrollbar */
+    //mProgress->setValue(std::fmod((float) glfwGetTime() / 10, 1.0f));
+    static auto time = std::chrono::high_resolution_clock::now();
+    static float dt = 0.f;
+
+    auto t2 = std::chrono::high_resolution_clock::now();
+    dt = float(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - time).count()) / 1000;
+    mainLoop(dt);
+    //        running = glWindow.renderFrame();
+    //TwDraw();
+    time = t2;
+    //ctx->
+    //mProgress->setValue(std::fmod((float) glfwGetTime() / 10, 1.0f));
+
+    /* Draw the user interface */
+    Screen::draw(ctx);
+}
+
+void MainClass::drawContents() {
+    using namespace nanogui;
+
+    /* Draw the window contents using OpenGL */
+    mShader.bind();
+
+    Matrix4f mvp;
+    mvp.setIdentity();
+    mvp.topLeftCorner<3,3>() = Matrix3f(Eigen::AngleAxisf((float) glfwGetTime(),  Vector3f::UnitZ())) * 0.25f;
+
+    mvp.row(0) *= (float) mSize.y() / (float) mSize.x();
+
+    mShader.setUniform("modelViewProj", mvp);
+
+    /* Draw 2 triangles starting at index 0 */
+    mShader.drawIndexed(GL_TRIANGLES, 0, 2);
+}
+
 void MainClass::Save() {
     ofstream out("mesh.obj", ios::out);
     for (auto &r : meshToRender) {
@@ -242,4 +575,8 @@ void MainClass::Save() {
     }
     out.flush();
     out.close();
+}
+
+MainClass::~MainClass() {
+    mShader.free();
 }

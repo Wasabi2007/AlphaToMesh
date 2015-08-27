@@ -8,11 +8,11 @@
 #include <gtx/string_cast.hpp>
 
 
-renderImage::renderImage(const char* filename):renderImage(*imageStruct::load(filename)){
+renderImage::renderImage(const char* filename):renderImage(imageStruct::load(filename)){
 
 }
 
-renderImage::renderImage(imageStruct img):
+renderImage::renderImage(imageStruct* img):
         img(img),VertexArrayID{0},vertexbuffer{0},
          elementbuffer{0}, VertexShader{0}, FragmentShader{0},
          ProgrammShader{0}, Texture{0},MVP{1}{
@@ -40,13 +40,13 @@ void renderImage::initGeom() {
             0.0f, 0.0f, 0.0f,//Position
             0.0f, 0.0f, //UV
 
-            float(img.width), 0.0f, 0.0f,//Position
+            float(img->width), 0.0f, 0.0f,//Position
             1.0f, 0.0f, //UV
 
-            float(img.width),  float(img.height), 0.0f,//Position
+            float(img->width),  float(img->height), 0.0f,//Position
             1.0f, 1.0f, //UV
 
-            0.0f,  float(img.height), 0.0f,//Position
+            0.0f,  float(img->height), 0.0f,//Position
             0.0f, 1.0f, //UV
     };
 
@@ -201,7 +201,7 @@ void renderImage::initTexture() {
     glGenTextures(1, &Texture);
     glBindTexture(GL_TEXTURE_2D, Texture);
 
-    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, img.width, img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img.image.data());
+    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, img->width, img->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img->image.data());
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
