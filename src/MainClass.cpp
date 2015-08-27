@@ -312,15 +312,17 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
     Button* b = new Button(window, "Open");
     b->setCallback([&] {
         this->filename = file_dialog(
-                { {"png", "Portable Network Graphics"} }, false);
+                { {"png", "Portable Network Graphics"} , {"", "All Data"} }, false);
 
 
         this->img = std::unique_ptr<imageStruct>(imageStruct::load(filename.c_str()));
-        /*this->renderImage1 = make_unique<renderImage>(this->img.get());
+        assert(this->img);
+
+        this->renderImage1 = make_unique<renderImage>(this->img.get());
         this->rimsToRender.clear();
         this->meshToRender.clear();
         this->status = "Image Loaded";
-        this->WindowSize();*/
+        this->WindowSize();
     });
 
     performLayout(mNVGContext);
@@ -451,8 +453,17 @@ void MainClass::init(Rim r) {
 void MainClass::mainLoop(float dt) {
     glClearColor(0.4f, 0.6f, 0.9f, 1.f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    if(MainClass::mvpreload){
+    auto window = glfwGetCurrentContext();
+    int width = 0;
+    int height = 0;
+
+    glfwGetFramebufferSize(window,&width,&height);
+
+    if(MainClass::mvpreload || MainClass::width != width || MainClass::height != height){
+        MainClass::width = width;
+        MainClass::height = height;
         MainClass::mvpreload = false;
         WindowSize();
     }
@@ -580,3 +591,4 @@ void MainClass::Save() {
 MainClass::~MainClass() {
     mShader.free();
 }
+

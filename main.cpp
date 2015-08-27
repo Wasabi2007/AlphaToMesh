@@ -109,8 +109,8 @@ int main(int argc, char *argv[]) {
     try {
         nanogui::init();
 
-        //glEnable(GL_BLEND);
-        //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         //float lineWidth[2];
         //glGetFloatv(GL_LINE_WIDTH_RANGE, lineWidth);

@@ -33,9 +33,7 @@ set(extra_source "")
 
 if(WIN32)
   list(APPEND extra_source "${CMAKE_CURRENT_SOURCE_DIR}/ext/glew/src/glew.c")
-  include_directories(ext/glew/include)
-  add_definitions (/D "_CRT_SECURE_NO_WARNINGS")
-  include_directories(ext/glew/include)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   set(extra_libs opengl32)
 elseif (APPLE)
   set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
@@ -51,7 +49,7 @@ elseif("${CMAKE_SYSTEM}" MATCHES "Linux")
   set(extra_libs GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl)
 endif()
 
-include_directories(ext/eigen ${GLFW_INCLUDE_DIR} ext/nanovg/src include ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(ext/eigen ${GLFW_INCLUDE_DIR} ext/nanovg/src include ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/ext/glew/include)
 add_library(nanogui STATIC
   ext/nanovg/src/nanovg.c resources.cpp
   include/nanogui/formscreen.h src/formscreen.cpp

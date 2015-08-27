@@ -4,6 +4,10 @@ project(AlphaToMesh)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
 
 add_definitions(-DSTACKTRACE -DGLEW_STATIC -DSTD_NO_MAKE_UNIQUE)
+if(WIN32)
+    add_definitions(-DWIN32)
+endif()
+
 #include_directories(Libs/MinGW/libpng/header)
 link_directories(Libs/MinGW/dlls)
 
@@ -24,6 +28,7 @@ include_directories(lodepng)
 include_directories(${GLFW_INCLUDE_DIR})
 include_directories(nanogui/include)
 include_directories(nanogui/ext/eigen)
+include_directories(nanogui/ext/glew/include)
 include_directories(nanogui/ext/nanovg/src)
 #include_directories(AntTweakBar/include)
 

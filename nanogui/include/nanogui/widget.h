@@ -61,7 +61,8 @@ public:
 
     /// Return the width of the widget
     int width() const { return mSize.x(); }
-    /// Set the width of the widget
+
+    virtual /// Set the width of the widget
     void setWidth(int width) { mSize.x() = width; }
 
     /// Return the height of the widget
