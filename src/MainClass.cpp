@@ -431,10 +431,9 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
         autoplayer->setEnabled(false);
         this->save->setEnabled(false);
 
-        this->filename = file_dialog(
-                { {"*.png", "Portable Network Graphics"} , {"*.", "All Data"} }, false);
+        this->filename = file_dialog({ {"*.png", "Portable Network Graphics"} , {"*.", "All Data"} }, false);
 
-        //cout << this->filename << endl;
+        cout << this->filename << endl;
 
         this->img = std::unique_ptr<imageStruct>(imageStruct::load(this->filename.c_str()));
         assert(this->img);

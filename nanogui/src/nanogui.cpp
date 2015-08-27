@@ -166,8 +166,9 @@ std::string file_dialog(const std::vector<std::pair<std::string, std::string>> &
     OPENFILENAME ofn;
     ZeroMemory(&ofn, sizeof(OPENFILENAME));
     ofn.lStructSize = sizeof(OPENFILENAME);
-    char tmp = '\0';
-    ofn.lpstrFile = &tmp;
+    char* tmp = new char[FILE_DIALOG_MAX_BUFFER];
+    memset(tmp,0,FILE_DIALOG_MAX_BUFFER);
+    ofn.lpstrFile = tmp;
     ofn.nMaxFile = FILE_DIALOG_MAX_BUFFER;
     ofn.nFilterIndex = 1;
 
@@ -185,14 +186,20 @@ std::string file_dialog(const std::vector<std::pair<std::string, std::string>> &
 
     if (save) {
         ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
-        if (GetSaveFileNameA(&ofn) == FALSE)
+        if (GetSaveFileNameA(&ofn) == FALSE){
+            delete tmp;
             return "";
+        }
     } else {
         ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-        if (GetOpenFileNameA(&ofn) == FALSE)
+        if (GetOpenFileNameA(&ofn) == FALSE) {
+            delete tmp;
             return "";
+        }
     }
-    return std::string(ofn.lpstrFile);
+    auto returner = std::string(ofn.lpstrFile);
+    delete tmp;
+    return returner;
 #else
     char buffer[FILE_DIALOG_MAX_BUFFER];
     std::string cmd = "/usr/bin/zenity --file-selection ";
