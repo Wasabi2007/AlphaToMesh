@@ -72,7 +72,8 @@ private:
 
     nanogui::GLShader mShader;
     nanogui::ProgressBar *mProgress;
-
+    nanogui::Button* save;
+    nanogui::TextBox* stateField;
 public:
     MainClass(const string &filename, float alpha_limit = 0.9f, float errorMarginDegree = 1.f);
 

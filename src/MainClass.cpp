@@ -79,7 +79,8 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
                                                                                           canStep(true),
                                                                                           autoStep(false),
                                                                                           timeCount(0.f),
-                                                                                          stepTime(1.f)
+                                                                                          stepTime(1.f),
+  status{"State"}
 {
     using namespace nanogui;
 
@@ -307,24 +308,10 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
         }
     });*/
     Window *window = new Window(this, "Algo Controlle");
-    window->setPosition(Vector2i(800, 15));
+    window->setPosition(Vector2i(600, 15));
     window->setLayout(new GroupLayout());
-    Button* b = new Button(window, "Open");
-    b->setCallback([&] {
-        this->filename = file_dialog(
-                { {"png", "Portable Network Graphics"} , {"", "All Data"} }, false);
-
-        //cout << this->filename << endl;
-
-        this->img = std::unique_ptr<imageStruct>(imageStruct::load(this->filename.c_str()));
-        assert(this->img);
-        
-        this->renderImage1 = make_unique<renderImage>(this->img.get());
-        this->rimsToRender.clear();
-        this->meshToRender.clear();
-        this->status = "Image Loaded";
-        this->WindowSize();
-    });
+    window->setFixedSize(Vector2i(400, 350));
+    Button* Open = new Button(window, "Open");
 
     Label* label = new Label(window,"Alpha Limit","sans-bold");
     Slider *slider = new Slider(window);
@@ -368,20 +355,14 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
 
     });
 
-    b = new Button(window, "Find Rims");
-    b->setCallback([&] {
-        this->canStep = true;
-        Rim r{this->alpha_limit, this->img.get(), this->errorMarginDegree};
-        this->status = "Finde Rims";
-        this->init(r);
-        this->status = "Found Rims";
-        this->WindowSize();
-    });
+    Button* brimButton = new Button(window, "Find Rims");
+    save = new Button(window, "Save");
+    brimButton->setEnabled(false);
 
 
-    b = new Button(window, "Save");
-    b->setCallback([&] {
-        auto file = file_dialog( { {"obj", "Wavefront Object File"} }, true);
+    save->setEnabled(false);
+    save->setCallback([&] {
+        auto file = file_dialog( { {"*.obj", "Wavefront Object File"} }, true);
 
         ofstream out(file, ios::out);
         for (auto &r : meshToRender) {
@@ -406,29 +387,76 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
     textBox->setValue("0.10");
 
 
-
-    slider->setValue(0.01f);
+    slider->setValue(0.1f);
     //slider->setFixedWidth(80);
     slider->setCallback([this,textBox](float v){
-        this->stepTime = v*10.f;
+        this->stepTime = v;
         auto s = std::to_string(this->stepTime);
         auto index = s.find('.',0);
         textBox->setValue(s.substr(0,index+3));
         //textBox->setValue(std::to_string(int(this->errorMarginDegree)));
-
     });
 
-    b = new Button(window, "Stepp");
-    b->setCallback([&] {
+    Button* StepPlayer = new Button(window, "Stepp");
+    StepPlayer->setEnabled(false);
+    StepPlayer->setCallback([&] {
         this->stepp = true;
 
     });
 
-    b = new Button(window, "Play");
-    b->setButtonFlags(Button::ToggleButton);
-    b->setCallback([&] {
-        this->autoStep = true;
+    Button* autoplayer = new Button(window, "Play");
+    autoplayer->setEnabled(false);
+    autoplayer->setButtonFlags(Button::ToggleButton);
+    autoplayer->setChangeCallback([&](bool state) {
+        this->autoStep = state;
     });
+
+    brimButton->setCallback([this,StepPlayer,autoplayer] {
+        this->canStep = true;
+        this->save->setEnabled(false);
+
+        Rim r{this->alpha_limit, this->img.get(), this->errorMarginDegree};
+        this->status = "Finde Rims";
+        this->init(r);
+        this->status = "Found Rims";
+        this->WindowSize();
+
+        StepPlayer->setEnabled(true);
+        autoplayer->setEnabled(true);
+    });
+
+    Open->setCallback([this,brimButton,StepPlayer,autoplayer] {
+        brimButton->setEnabled(false);
+        StepPlayer->setEnabled(false);
+        autoplayer->setEnabled(false);
+        this->save->setEnabled(false);
+
+        this->filename = file_dialog(
+                { {"*.png", "Portable Network Graphics"} , {"*.", "All Data"} }, false);
+
+        //cout << this->filename << endl;
+
+        this->img = std::unique_ptr<imageStruct>(imageStruct::load(this->filename.c_str()));
+        assert(this->img);
+        brimButton->setEnabled(true);
+        this->renderImage1 = make_unique<renderImage>(this->img.get());
+        this->rimsToRender.clear();
+        this->meshToRender.clear();
+        this->status = "Image Loaded";
+        this->WindowSize();
+    });
+
+
+    window = new Window(this, "State");
+    window->setLayout(new GroupLayout());
+    window->setPosition(Vector2i(400,675));
+    window->setFixedSize(Vector2i(300, 75));
+
+    stateField = new TextBox(window);
+    stateField->setFontSize(20);
+    stateField->setValue("State");
+    //textBox->setFormat("[-]?[0-9]*\\.?[0-9]+");
+    stateField->setEditable(false);
 
     performLayout(mNVGContext);
 
@@ -457,7 +485,7 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
                     "out vec4 color;\n"
                     "uniform float intensity;\n"
                     "void main() {\n"
-                    "    color = vec4(vec3(0.5), 1.0);\n"
+                    "    color = vec4(vec3(intensity), 1.0);\n"
                     "}"
     );
 
@@ -474,52 +502,10 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
     mShader.bind();
     mShader.uploadIndices(indices);
     mShader.uploadAttrib("position", positions);
-    //mShader.setUniform("intensity", 0.5f);
+    mShader.setUniform("intensity", 0.5f);
 }
 
 void MainClass::initTW(){
-    //auto window = glfwGetCurrentContext();
-    int width = 0;
-    int height = 0;
-
-    //glfwGetFramebufferSize(window,&width,&height);
-
-
-    /*TwDefine(" GLOBAL fontscaling=3 ");
-    TwInit(TW_OPENGL_CORE, NULL);
-    TwWindowSize(width, height);
-
-    animationBar = TwNewBar("PlayControlle");
-    TwDefine(" PlayControlle position='0 0' ");
-    TwDefine(" PlayControlle size='500 300' ");
-    TwAddButton(animationBar,"Step",doStep,this," label='Step' ");
-    TwAddButton(animationBar,"AutoStep",doAutoStep,this," label='Auto Step' ");
-    TwAddVarRW(animationBar, "speed", TW_TYPE_FLOAT, &stepTime,
-               " label='Step speed' min=0 max=10 step=0.1");
-
-    TwAddVarRO(animationBar,"Process",TW_TYPE_STDSTRING,&this->status,"");
-
-
-
-    allgoBar = TwNewBar("AlgoControlle");
-    TwDefine(" AlgoControlle position='900 0' ");
-    TwDefine(" AlgoControlle size='500 400' ");
-    TwCopyStdStringToClientFunc([](std::string& destinationClientString, const std::string& sourceLibraryString)
-    {
-        // Copy the content of souceString handled by the AntTweakBar library to destinationClientString handled by your application
-        destinationClientString = sourceLibraryString;
-    });
-
-    TwAddVarRW(allgoBar,"Filename",TW_TYPE_STDSTRING,&this->filename,"");
-    TwAddButton(allgoBar,"Loadfile",loadImage,this," label='Loadfile' ");
-
-    TwAddVarRW(allgoBar,"Alphaschwellwert",TW_TYPE_FLOAT, &alpha_limit," label='Alpha Limit' min=0 max=1 step=0.01");
-    TwAddVarRW(allgoBar,"Simplification",TW_TYPE_FLOAT, &errorMarginDegree," label='Simplification' min=0 step=0.1");
-
-    TwAddButton(allgoBar,"Find Rims",initRims,this," label='Find Rims' ");
-    TwAddButton(allgoBar,"Save Data",doSave,this," label='Save Mesh' ");
-*/
-    //glfwSetFramebufferSizeCallback(window,WindowSizeCB);
 }
 
 void MainClass::init(Rim r) {
@@ -590,7 +576,8 @@ void MainClass::mainLoop(float dt) {
         stepp = false;
         canStep = false;
         for (auto &r : meshToRender) {
-            canStep = canStep || r.Step();
+            auto rs = r.Step();
+            canStep = (canStep || rs);
         }
 
         if(canStep) {
@@ -604,17 +591,20 @@ void MainClass::mainLoop(float dt) {
         timeCount = 0.f;
         canStep = false;
         for (auto &r : meshToRender) {
-            canStep = canStep || r.Step();
+            auto rs = r.Step();
+            canStep = (canStep || rs);
         }
 
         if(canStep) {
             status = "Triangolation In progress";
         } else{
+            if(!save->enabled())
+                save->setEnabled(true);
             status = "Finished";
         }
     }
 
-
+    stateField->setValue(status);
     timeCount += dt;
     //cout << "timeCount: " << timeCount << endl;
 }

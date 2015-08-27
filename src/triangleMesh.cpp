@@ -308,6 +308,10 @@ bool triangleMesh::Step() {
             revaluate(pre, P, indexList, E, R, C);
             revaluate(next, P, indexList, E, R, C);
         }
+
+        if(indexList.size() < 3){
+            E.clear();
+        }
     }
     glBindVertexArray(VertexArrayID);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);

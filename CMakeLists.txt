@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 project(AlphaToMesh)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_definitions(-DSTACKTRACE -DGLEW_STATIC -DSTD_NO_MAKE_UNIQUE)
 if(WIN32)

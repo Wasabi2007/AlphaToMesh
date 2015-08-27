@@ -32,7 +32,7 @@ option(GLFW_INSTALL " " OFF)
 set(extra_source "")
 
 if(WIN32)
-  list(APPEND extra_source "${CMAKE_CURRENT_SOURCE_DIR}/../glew/src/glew.c")
+  #list(APPEND extra_source "${CMAKE_CURRENT_SOURCE_DIR}/../glew/src/glew.c")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   set(extra_libs opengl32)
 elseif (APPLE)
