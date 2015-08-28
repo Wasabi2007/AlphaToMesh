@@ -307,7 +307,7 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
             popupBtnRef.setPushed(false);
         }
     });*/
-    Window *window = new Window(this, "Algo Controlle");
+    Window *window = new Window(this, "Algorithm Controle");
     window->setPosition(Vector2i(600, 15));
     window->setLayout(new GroupLayout());
     window->setFixedSize(Vector2i(400, 350));
@@ -362,7 +362,11 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
 
     save->setEnabled(false);
     save->setCallback([&] {
-        auto file = file_dialog( { {"*.obj", "Wavefront Object File"} }, true);
+#if WIN32
+        auto file = file_dialog({"*.obj", "Wavefront OBJ} },true);
+#else
+        auto file = file_dialog({ {"obj", "Wavefront OBJ"} }, true);
+#endif
 
         ofstream out(file, ios::out);
         for (auto &r : meshToRender) {
@@ -397,7 +401,7 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
         //textBox->setValue(std::to_string(int(this->errorMarginDegree)));
     });
 
-    Button* StepPlayer = new Button(window, "Stepp");
+    Button* StepPlayer = new Button(window, "Step");
     StepPlayer->setEnabled(false);
     StepPlayer->setCallback([&] {
         this->stepp = true;
@@ -431,12 +435,16 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
         autoplayer->setEnabled(false);
         this->save->setEnabled(false);
 
+#if WIN32
         this->filename = file_dialog({ {"*.png", "Portable Network Graphics"} , {"*.", "All Data"} }, false);
+#else
+        this->filename = file_dialog({ {"png", "Portable Network Graphics"} , {"", "All Data"} }, false);
+#endif
 
         cout << this->filename << endl;
 
         this->img = std::unique_ptr<imageStruct>(imageStruct::load(this->filename.c_str()));
-        assert(this->img);
+        if (!this->img) return;
         brimButton->setEnabled(true);
         this->renderImage1 = make_unique<renderImage>(this->img.get());
         this->rimsToRender.clear();
@@ -580,7 +588,7 @@ void MainClass::mainLoop(float dt) {
         }
 
         if(canStep) {
-            status = "Triangolation In progress";
+            status = "Triangulation In progress";
         } else{
             status = "Finished";
         }
