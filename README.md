@@ -14,7 +14,7 @@ There shouldn't be any extra dependencies.
 ### Linux
 You need xorg-dev and libglu1-mesa-dev.
 
-## Static linked library's
+## Used library's
 glew  
 glfw  
 glm  
