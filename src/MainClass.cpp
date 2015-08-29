@@ -363,7 +363,7 @@ MainClass::MainClass(const string &filename,float alpha_limit, float errorMargin
     save->setEnabled(false);
     save->setCallback([&] {
 #if WIN32
-        auto file = file_dialog({"*.obj", "Wavefront OBJ} },true);
+        auto file = file_dialog({{"*.obj", "Wavefront OBJ"} },true);
 #else
         auto file = file_dialog({ {"obj", "Wavefront OBJ"} }, true);
 #endif
